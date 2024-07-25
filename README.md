@@ -1,6 +1,19 @@
 # 使用说明
 
-## BlackBorderDetector 节点
+## 版本更新
+
+### v1.1.0 2024-7-25
+- ✨支持一个绘制黑边的节点，能够缩放图片，并通过填充黑边开解决缩放目标尺寸和原图不同的问题
+
+### v1.0.0 2024-7-24
+- ✨支持删除黑边的工作流
+- ✨可以在删除完黑边后输出一个裁剪后的图片和输出每个方向裁剪的数值
+- ✨支持对裁剪数值增加额外的拓展值，用于在进行拓展图片的时候多拓展一些，避免边缘的额外长度，当然，生成完成后可以裁剪掉这部分
+- ✨支持 img_crop_border 节点，可以删除图片的边框，可以结合上一个节点的 {方向}_top_border_add 节点使用
+
+## img_black_border_detector 节点
+
+这个节点可以实现输入一张图片，然后自动检测并删除黑边
 
 ### 输入参数
 - image (IMAGE)：要处理的输入图像。
@@ -12,8 +25,8 @@
 ### 输出参数
 
 - cropped_image (IMAGE)：边界检测和裁剪后的图像。
-- width (INT)：裁剪后图像的宽度。
-- height (INT)：裁剪后图像的高度。
+- width (INT)：最终输出图像的宽度。
+- height (INT)：最终输出图像的高度。
 - top_border (INT)：检测到的上黑边。
 - bottom_border (INT)：检测到的下黑边。
 - left_border (INT)：检测到的左黑边。
@@ -23,7 +36,7 @@
 - left_border_add (INT)：额外的左边界扩展。
 - right_border_add (INT)：额外的右边界扩展。
 
-## Cropborder 节点
+## img_crop_border 节点
 
 ### 输入参数
 - image (IMAGE)：要裁剪的输入图像。
