@@ -8,8 +8,8 @@ class ResizeAndCenter:
         return {
             "required": {
                 "image": ("IMAGE",),
-                "width": ("INT", {"default": 512, "min": 64, "max": 2048}),
-                "height": ("INT", {"default": 512, "min": 64, "max": 2048}),
+                "width": ("INT", {"default": 512, "min": 64, "max": 6048}),
+                "height": ("INT", {"default": 512, "min": 64, "max": 6048}),
             },
         }
 
