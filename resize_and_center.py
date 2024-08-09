@@ -13,7 +13,8 @@ class ResizeAndCenter:
             },
         }
 
-    RETURN_TYPES = ("IMAGE",)
+    RETURN_TYPES = ("IMAGE", "INT", "INT", "INT", "INT")
+    RETURN_NAMES = ("image", "top_border", "bottom_border", "left_border", "right_border")
     FUNCTION = "resize_and_center"
     CATEGORY = "✨✨✨design-ai"
 
@@ -38,13 +39,21 @@ class ResizeAndCenter:
         
         img = img.resize((new_width, new_height), Image.LANCZOS)
 
+        # Calculate border sizes
+        left_border = (width - new_width) // 2
+        right_border = width - new_width - left_border
+        top_border = (height - new_height) // 2
+        bottom_border = height - new_height - top_border
+
         # Create new image with target size and black background
         new_img = Image.new('RGB', (width, height), color='black')
 
         # Paste resized image onto new image (centered)
-        paste_x = (width - new_width) // 2
-        paste_y = (height - new_height) // 2
+        paste_x = left_border
+        paste_y = top_border
         new_img.paste(img, (paste_x, paste_y))
 
         # Convert back to torch tensor
-        return (torch.from_numpy(np.array(new_img).astype(np.float32) / 255.0).unsqueeze(0),)
+        tensor_img = torch.from_numpy(np.array(new_img).astype(np.float32) / 255.0).unsqueeze(0)
+
+        return (tensor_img, top_border, bottom_border, left_border, right_border)
