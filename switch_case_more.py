@@ -23,7 +23,7 @@ class SwitchCaseMore:
     RETURN_TYPES = (any,)
     RETURN_NAMES = "?"
     FUNCTION = "switch_case"
-    CATEGORY = "✨✨✨design-ai/switch-case"
+    CATEGORY = "✨✨✨design-ai"
 
     def switch_case(self, switch_condition, input_default, **kwargs):
         case_input_dict = {kwargs[f'case_{i}']: kwargs.get(f'input_{i}') for i in range(1, 17)}
