@@ -5,6 +5,7 @@ from .switch_case_more import SwitchCaseMore
 from .resize_by_side_pro import ResizeBySidePro
 from .colorgenerator import GetPrimaryColor
 from .text_color_on_bg import TextColorOnBg
+from .draw_text_on_image import DrawTextOnImage
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -13,7 +14,8 @@ NODE_CLASS_MAPPINGS = {
     "SwitchCaseMore": SwitchCaseMore,
     "ResizeBySidePro": ResizeBySidePro,
     "GetPrimaryColor": GetPrimaryColor,
-    "TextColorOnBg": TextColorOnBg
+    "TextColorOnBg": TextColorOnBg,
+    "DrawTextOnImage": DrawTextOnImage
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -23,7 +25,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SwitchCaseMore": "Switch_case_more",
     "ResizeBySidePro": "Resize_by_side_pro",
     "GetPrimaryColor": "GetPrimaryColor",
-    "TextColorOnBg": "TextColorOnBg"
+    "TextColorOnBg": "TextColorOnBg",
+    "DrawTextOnImage": "DrawTextOnImage"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
