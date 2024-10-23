@@ -55,3 +55,22 @@ def calculate_average_color(palette):
 
 def rgb_to_hex(rgb):
     return '#{:02x}{:02x}{:02x}'.format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
+
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def relative_luminance(rgb):
+    r, g, b = [x / 255.0 for x in rgb]
+    r = r / 12.92 if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
+    g = g / 12.92 if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
+    b = b / 12.92 if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+def contrast_ratio(color1, color2):
+    lum1 = relative_luminance(color1)
+    lum2 = relative_luminance(color2)
+    if lum1 > lum2:
+        return (lum1 + 0.05) / (lum2 + 0.05)
+    else:
+        return (lum2 + 0.05) / (lum1 + 0.05)

@@ -16,7 +16,7 @@ class GetPrimaryColor:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("main_color",)
     FUNCTION = "analyze_and_extract_main_color"
-    CATEGORY = "✨✨✨design-ai"
+    CATEGORY = "✨✨✨design-ai/color"
 
     def analyze_and_extract_main_color(self, image, threshold):
         # Convert torch tensor to PIL Image
