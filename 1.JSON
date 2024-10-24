@@ -1,0 +1,7 @@
+[{"version": "4.5.6", 
+"flags": {}, "shapes": 
+[{"label": "\u20ac.?'2$ @:", "points": [[37, 65], [345, 107]], "group_id": null, "shape_type": "rectangle", "flags": {}, "threshold": 0.01}, 
+{"label": "1@6'", "points": [[34, 106], [350, 202]], "group_id": null, "shape_type": "rectangle", "flags": {}, "threshold": 0.22}, {"label": "\u20ac@1':\u20ac 1", "points": [[59, 201], [322, 245]], "group_id": null, 
+"shape_type": "rectangle", 
+"flags": {}, "threshold": 0.01}], 
+"imagePath": null, "imageData": null, "imageHeight": 366, "imageWidth": 710}]

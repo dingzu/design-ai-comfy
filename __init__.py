@@ -6,6 +6,8 @@ from .resize_by_side_pro import ResizeBySidePro
 from .colorgenerator import GetPrimaryColor
 from .text_color_on_bg import TextColorOnBg
 from .draw_text_on_image import DrawTextOnImage
+from .determine_text_position import DetermineTextPosition
+from .crop_image_by_percentage import CropImageByPercentage
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -15,7 +17,9 @@ NODE_CLASS_MAPPINGS = {
     "ResizeBySidePro": ResizeBySidePro,
     "GetPrimaryColor": GetPrimaryColor,
     "TextColorOnBg": TextColorOnBg,
-    "DrawTextOnImage": DrawTextOnImage
+    "DrawTextOnImage": DrawTextOnImage,
+    "DetermineTextPosition": DetermineTextPosition,
+    "CropImageByPercentage": CropImageByPercentage
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -26,7 +30,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ResizeBySidePro": "Resize_by_side_pro",
     "GetPrimaryColor": "GetPrimaryColor",
     "TextColorOnBg": "TextColorOnBg",
-    "DrawTextOnImage": "DrawTextOnImage"
+    "DrawTextOnImage": "DrawTextOnImage",
+    "DetermineTextPosition": "DetermineTextPosition",
+    "CropImageByPercentage": "CropImageByPercentage"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
