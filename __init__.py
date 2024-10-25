@@ -8,6 +8,8 @@ from .text_color_on_bg import TextColorOnBg
 from .draw_text_on_image import DrawTextOnImage
 from .determine_text_position import DetermineTextPosition
 from .crop_image_by_percentage import CropImageByPercentage
+from .convert_json_format import ConvertJsonFormat
+from .text_position_estimator import TextPositionEstimator
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -19,7 +21,9 @@ NODE_CLASS_MAPPINGS = {
     "TextColorOnBg": TextColorOnBg,
     "DrawTextOnImage": DrawTextOnImage,
     "DetermineTextPosition": DetermineTextPosition,
-    "CropImageByPercentage": CropImageByPercentage
+    "CropImageByPercentage": CropImageByPercentage,
+    "ConvertJsonFormat":ConvertJsonFormat,
+    "TextPositionEstimator":TextPositionEstimator
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -32,7 +36,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TextColorOnBg": "TextColorOnBg",
     "DrawTextOnImage": "DrawTextOnImage",
     "DetermineTextPosition": "DetermineTextPosition",
-    "CropImageByPercentage": "CropImageByPercentage"
+    "CropImageByPercentage": "CropImageByPercentage",
+    "ConvertJsonFormat": "ConvertJsonFormat",
+    "TextPositionEstimator": "TextPositionEstimator"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
