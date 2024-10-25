@@ -56,20 +56,27 @@ class TextPositionEstimator:
 
             centroid_position = [total_x / total_area, total_y / total_area]
 
-            # Determine the position (left, right, center)
-            def determine_position(x, width, threshold):
+            # Determine the position (left, right, center-top, center-bottom, center-middle)
+            def determine_position(x, y, width, height, threshold):
                 if x < width * (1 - threshold) / 2:
                     return "left"
                 elif x > width * (1 + threshold) / 2:
                     return "right"
                 else:
-                    return "center"
+                    if y < height / 3:
+                        return "center-top"
+                    elif y > height * 2 / 3:
+                        return "center-bottom"
+                    else:
+                        return "center-middle"
 
             max_area_x = (max_area_position[0][0] + max_area_position[1][0]) / 2
+            max_area_y = (max_area_position[0][1] + max_area_position[1][1]) / 2
             centroid_x = centroid_position[0]
+            centroid_y = centroid_position[1]
 
-            max_area_result = determine_position(max_area_x, image_width, center_threshold)
-            centroid_result = determine_position(centroid_x, image_width, center_threshold)
+            max_area_result = determine_position(max_area_x, max_area_y, image_width, image_height, center_threshold)
+            centroid_result = determine_position(centroid_x, centroid_y, image_width, image_height, center_threshold)
 
             return (max_area_result, centroid_result)
         except Exception as e:
