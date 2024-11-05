@@ -13,20 +13,25 @@ class BlackBorderDetector:
                 "expand": ("INT", {"default": 0, "min": -1000, "max": 1000, "step": 1}),
                 "expand_after_crop": ("INT", {"default": 0, "min": -1000, "max": 1000, "step": 1}),
                 "ignore_threshold": ("INT", {"default": -1, "min": -1, "max": 1000, "step": 1}),
+                "remove_mode": (["black", "all_colors"],),
             },
         }
 
     RETURN_TYPES = ("IMAGE", "INT", "INT", "INT", "INT", "INT", "INT", "INT", "INT", "INT", "INT")
     RETURN_NAMES = ("cropped_image", "width", "height", "top_border", "bottom_border", "left_border", "right_border", "top_border_add", "bottom_border_add", "left_border_add", "right_border_add")
 
-    FUNCTION = "detect_and_crop_black_border"
+    FUNCTION = "detect_and_crop_border"
 
     CATEGORY = "✨✨✨design-ai"
 
-    def detect_and_crop_black_border(self, image, threshold, expand, expand_after_crop, ignore_threshold):
+    def detect_and_crop_border(self, image, threshold, expand, expand_after_crop, ignore_threshold, remove_mode):
         img = image[0]
         height, width, channels = img.shape
-        gray = torch.mean(img, dim=2)
+
+        if remove_mode == "black":
+            gray = torch.mean(img, dim=2)
+        else:
+            gray = torch.sum(torch.abs(img - img[0, 0, :]), dim=2)
 
         # 检测边框
         top_border = 0
