@@ -15,8 +15,8 @@ class TextColorOnBg:
             },
         }
 
-    RETURN_TYPES = ("STRING", "LIST", "STRING")
-    RETURN_NAMES = ("random_color", "valid_colors", "max_contrast_color")
+    RETURN_TYPES = ("STRING", "LIST", "STRING", "LIST")
+    RETURN_NAMES = ("random_color", "valid_colors", "max_contrast_color", "high_contrast_colors")
     FUNCTION = "select_high_contrast_color"
     CATEGORY = "✨✨✨design-ai/color"
 
@@ -39,6 +39,9 @@ class TextColorOnBg:
         if valid_colors:
             random_color = random.choice(valid_colors)
         else:
-            random_color = "#000000"  # Default to black if no valid colors are found
+            # 优化兜底逻辑
+            black_contrast = color_utils.contrast_ratio(base_color, (0, 0, 0))
+            white_contrast = color_utils.contrast_ratio(base_color, (255, 255, 255))
+            random_color = "#000000" if black_contrast > white_contrast else "#FFFFFF"
 
         return (random_color, valid_colors, max_contrast_color)
