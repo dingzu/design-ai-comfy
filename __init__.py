@@ -10,6 +10,7 @@ from .determine_text_position import DetermineTextPosition
 from .crop_image_by_percentage import CropImageByPercentage
 from .convert_json_format import ConvertJsonFormat
 from .text_position_estimator import TextPositionEstimator
+from .generate_mask_from_bbox import GenerateMaskFromBbox
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -23,7 +24,8 @@ NODE_CLASS_MAPPINGS = {
     "DetermineTextPosition": DetermineTextPosition,
     "CropImageByPercentage": CropImageByPercentage,
     "ConvertJsonFormat":ConvertJsonFormat,
-    "TextPositionEstimator":TextPositionEstimator
+    "TextPositionEstimator":TextPositionEstimator,
+    "GenerateMaskFromBbox": GenerateMaskFromBbox
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -38,7 +40,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "DetermineTextPosition": "DetermineTextPosition",
     "CropImageByPercentage": "CropImageByPercentage",
     "ConvertJsonFormat": "ConvertJsonFormat",
-    "TextPositionEstimator": "TextPositionEstimator"
+    "TextPositionEstimator": "TextPositionEstimator",
+    "GenerateMaskFromBbox": "GenerateMaskFromBbox"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
