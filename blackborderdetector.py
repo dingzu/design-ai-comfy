@@ -33,7 +33,7 @@ class BlackBorderDetector:
         else:
             gray = torch.sum(torch.abs(img - img[0, 0, :]), dim=2)
 
-        # 检测边框
+        # 初始化边框
         top_border = 0
         bottom_border = height
         left_border = 0
@@ -45,25 +45,41 @@ class BlackBorderDetector:
         left_border_expand_after_crop = 0
         right_border_expand_after_crop = 0
 
-        for i in range(height):
-            if torch.mean(gray[i]) > threshold:
-                top_border = i
+        while True:
+            new_top_border = top_border
+            new_bottom_border = bottom_border
+            new_left_border = left_border
+            new_right_border = right_border
+
+            for i in range(top_border, bottom_border):
+                if torch.mean(gray[i, left_border:right_border]) > threshold:
+                    new_top_border = i
+                    break
+
+            for i in range(bottom_border - 1, top_border - 1, -1):
+                if torch.mean(gray[i, left_border:right_border]) > threshold:
+                    new_bottom_border = i + 1
+                    break
+
+            for i in range(left_border, right_border):
+                if torch.mean(gray[top_border:bottom_border, i]) > threshold:
+                    new_left_border = i
+                    break
+
+            for i in range(right_border - 1, left_border - 1, -1):
+                if torch.mean(gray[top_border:bottom_border, i]) > threshold:
+                    new_right_border = i + 1
+                    break
+
+            # 检查是否有变化
+            if (new_top_border == top_border and new_bottom_border == bottom_border and
+                new_left_border == left_border and new_right_border == right_border):
                 break
 
-        for i in range(height - 1, -1, -1):
-            if torch.mean(gray[i]) > threshold:
-                bottom_border = i + 1
-                break
-
-        for i in range(width):
-            if torch.mean(gray[:, i]) > threshold:
-                left_border = i
-                break
-
-        for i in range(width - 1, -1, -1):
-            if torch.mean(gray[:, i]) > threshold:
-                right_border = i + 1
-                break
+            top_border = new_top_border
+            bottom_border = new_bottom_border
+            left_border = new_left_border
+            right_border = new_right_border
 
         # 应用忽略阈值
         if ignore_threshold > 0:
