@@ -25,111 +25,61 @@ class BlackBorderDetector:
     CATEGORY = "✨✨✨design-ai"
 
     def detect_and_crop_border(self, image, threshold, expand, expand_after_crop, ignore_threshold, remove_mode):
+        def crop_once(img, mode):
+            gray = torch.mean(img, dim=2) if mode == "black" else torch.sum(torch.abs(img - img[0, 0, :]), dim=2)
+            # 假设初始化边框与颜色无关
+            top_border, bottom_border = 0, img.shape[0]
+            left_border, right_border = 0, img.shape[1]
+
+            while True:
+                new_top_border, new_bottom_border = top_border, bottom_border
+                new_left_border, new_right_border = left_border, right_border
+
+                for i in range(top_border, bottom_border):
+                    if torch.mean(gray[i, left_border:right_border]) > threshold:
+                        new_top_border = i
+                        break
+
+                for i in range(bottom_border - 1, top_border - 1, -1):
+                    if torch.mean(gray[i, left_border:right_border]) > threshold:
+                        new_bottom_border = i + 1
+                        break
+
+                for i in range(left_border, right_border):
+                    if torch.mean(gray[top_border:bottom_border, i]) > threshold:
+                        new_left_border = i
+                        break
+
+                for i in range(right_border - 1, left_border - 1, -1):
+                    if torch.mean(gray[top_border:bottom_border, i]) > threshold:
+                        new_right_border = i + 1
+                        break
+
+                if (new_top_border == top_border and new_bottom_border == bottom_border and
+                    new_left_border == left_border and new_right_border == right_border):
+                    break
+
+                top_border, bottom_border = new_top_border, new_bottom_border
+                left_border, right_border = new_left_border, new_right_border
+
+            return (top_border, bottom_border, left_border, right_border)
+
         img = image[0]
         height, width, channels = img.shape
 
-        if remove_mode == "black":
-            gray = torch.mean(img, dim=2)
-        else:
-            gray = torch.sum(torch.abs(img - img[0, 0, :]), dim=2)
+        modes = ["black", "all_colors"]
+        borders = [None, None, None, None]
+        for mode in modes:
+            top, bottom, left, right = crop_once(img, mode)
+            borders[0] = max(borders[0] or top, top)
+            borders[1] = min(borders[1] or bottom, bottom)
+            borders[2] = max(borders[2] or left, left)
+            borders[3] = min(borders[3] or right, right)
 
-        # 初始化边框
-        top_border = 0
-        bottom_border = height
-        left_border = 0
-        right_border = width
-
-        # 记录额外拓展值
-        top_border_expand_after_crop = 0
-        bottom_border_expand_after_crop = 0
-        left_border_expand_after_crop = 0
-        right_border_expand_after_crop = 0
-
-        while True:
-            new_top_border = top_border
-            new_bottom_border = bottom_border
-            new_left_border = left_border
-            new_right_border = right_border
-
-            for i in range(top_border, bottom_border):
-                if torch.mean(gray[i, left_border:right_border]) > threshold:
-                    new_top_border = i
-                    break
-
-            for i in range(bottom_border - 1, top_border - 1, -1):
-                if torch.mean(gray[i, left_border:right_border]) > threshold:
-                    new_bottom_border = i + 1
-                    break
-
-            for i in range(left_border, right_border):
-                if torch.mean(gray[top_border:bottom_border, i]) > threshold:
-                    new_left_border = i
-                    break
-
-            for i in range(right_border - 1, left_border - 1, -1):
-                if torch.mean(gray[top_border:bottom_border, i]) > threshold:
-                    new_right_border = i + 1
-                    break
-
-            # 检查是否有变化
-            if (new_top_border == top_border and new_bottom_border == bottom_border and
-                new_left_border == left_border and new_right_border == right_border):
-                break
-
-            top_border = new_top_border
-            bottom_border = new_bottom_border
-            left_border = new_left_border
-            right_border = new_right_border
-
-        # 应用忽略阈值
-        if ignore_threshold > 0:
-            if top_border <= ignore_threshold:
-                top_border = 0
-            if height - bottom_border <= ignore_threshold:
-                bottom_border = height
-            if left_border <= ignore_threshold:
-                left_border = 0
-            if width - right_border <= ignore_threshold:
-                right_border = width
-
-        # 应用扩展值
-        if top_border != 0:
-            top_border = max(0, top_border + expand)
-        if bottom_border != height:
-            bottom_border = min(height, bottom_border - expand)
-        if left_border != 0:
-            left_border = max(0, left_border + expand)
-        if right_border != width:
-            right_border = min(width, right_border - expand)
-
-        # 确保裁剪区域有效
-        if top_border >= bottom_border:
-            top_border = 0
-            bottom_border = height
-        if left_border >= right_border:
-            left_border = 0
-            right_border = width
-
-        # 裁剪图像
-        cropped_img = img[top_border:bottom_border, left_border:right_border, :]
+        cropped_img = img[borders[0]:borders[1], borders[2]:borders[3], :]
         cropped_img = cropped_img.unsqueeze(0)
 
-        # 裁剪图片后再次拓展
-        if top_border != 0:
-            top_border = max(0, top_border + expand_after_crop)
-            top_border_expand_after_crop = expand_after_crop
-        if bottom_border != height:
-            bottom_border = min(height, bottom_border - expand_after_crop)
-            bottom_border_expand_after_crop = expand_after_crop
-        if left_border != 0:
-            left_border = max(0, left_border + expand_after_crop)
-            left_border_expand_after_crop = expand_after_crop
-        if right_border != width:
-            right_border = min(width, right_border - expand_after_crop)
-            right_border_expand_after_crop = expand_after_crop
-
-        # 计算输出参数
-        new_height = bottom_border - top_border
-        new_width = right_border - left_border
-
-        return (cropped_img, new_width, new_height, top_border, height - bottom_border, left_border, width - right_border, top_border_expand_after_crop, bottom_border_expand_after_crop, left_border_expand_after_crop, right_border_expand_after_crop)
+        new_height = borders[1] - borders[0]
+        new_width = borders[3] - borders[2]
+        
+        return (cropped_img, new_width, new_height, borders[0], height - borders[1], borders[2], width - borders[3], 0, 0, 0, 0)
