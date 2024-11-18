@@ -126,13 +126,13 @@ class BlackBorderDetector:
 
     def _apply_expand(self, top_border, bottom_border, left_border, right_border, height, width, expand):
         if top_border != 0:
-            top_border = max(0, top_border - expand)
+            top_border = max(0, top_border + expand)
         if bottom_border != height:
-            bottom_border = min(height, bottom_border + expand)
+            bottom_border = min(height, bottom_border - expand)
         if left_border != 0:
-            left_border = max(0, left_border - expand)
+            left_border = max(0, left_border + expand)
         if right_border != width:
-            right_border = min(width, right_border + expand)
+            right_border = min(width, right_border - expand)
 
         if top_border >= bottom_border:
             top_border = 0
