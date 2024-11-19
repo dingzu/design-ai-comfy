@@ -12,6 +12,8 @@ from .convert_json_format import ConvertJsonFormat
 from .text_position_estimator import TextPositionEstimator
 from .generate_mask_from_bbox import GenerateMaskFromBbox
 from .random_color_generator import RandomColorGenerator
+from .random_switch import RandomSwitch
+from .string_builder import StringBuilder
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -27,7 +29,9 @@ NODE_CLASS_MAPPINGS = {
     "ConvertJsonFormat":ConvertJsonFormat,
     "TextPositionEstimator":TextPositionEstimator,
     "GenerateMaskFromBbox": GenerateMaskFromBbox,
-    "RandomColorGenerator": RandomColorGenerator
+    "RandomColorGenerator": RandomColorGenerator,
+    "RandomSwitch": RandomSwitch,
+    "StringBuilder": StringBuilder
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -44,7 +48,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ConvertJsonFormat": "ConvertJsonFormat",
     "TextPositionEstimator": "TextPositionEstimator",
     "GenerateMaskFromBbox": "GenerateMaskFromBbox",
-    "RandomColorGenerator": "RandomColorGenerator"
+    "RandomColorGenerator": "RandomColorGenerator",
+    "RandomSwitch": "RandomSwitch",
+    "StringBuilder": "StringBuilder"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
