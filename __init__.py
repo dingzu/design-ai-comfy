@@ -11,6 +11,7 @@ from .crop_image_by_percentage import CropImageByPercentage
 from .convert_json_format import ConvertJsonFormat
 from .text_position_estimator import TextPositionEstimator
 from .generate_mask_from_bbox import GenerateMaskFromBbox
+from .random_color_generator import RandomColorGenerator
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -25,7 +26,8 @@ NODE_CLASS_MAPPINGS = {
     "CropImageByPercentage": CropImageByPercentage,
     "ConvertJsonFormat":ConvertJsonFormat,
     "TextPositionEstimator":TextPositionEstimator,
-    "GenerateMaskFromBbox": GenerateMaskFromBbox
+    "GenerateMaskFromBbox": GenerateMaskFromBbox,
+    "RandomColorGenerator": RandomColorGenerator
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -41,7 +43,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CropImageByPercentage": "CropImageByPercentage",
     "ConvertJsonFormat": "ConvertJsonFormat",
     "TextPositionEstimator": "TextPositionEstimator",
-    "GenerateMaskFromBbox": "GenerateMaskFromBbox"
+    "GenerateMaskFromBbox": "GenerateMaskFromBbox",
+    "RandomColorGenerator": "RandomColorGenerator"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
