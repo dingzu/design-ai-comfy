@@ -14,6 +14,9 @@ from .generate_mask_from_bbox import GenerateMaskFromBbox
 from .random_color_generator import RandomColorGenerator
 from .random_switch import RandomSwitch
 from .string_builder import StringBuilder
+from .generate_mask_from_points import GenerateMaskFromPoints
+from .json_extractor import JsonExtractor
+from .coordinate_sorter import CoordinateSorter
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -31,7 +34,10 @@ NODE_CLASS_MAPPINGS = {
     "GenerateMaskFromBbox": GenerateMaskFromBbox,
     "RandomColorGenerator": RandomColorGenerator,
     "RandomSwitch": RandomSwitch,
-    "StringBuilder": StringBuilder
+    "StringBuilder": StringBuilder,
+    "GenerateMaskFromPoints": GenerateMaskFromPoints,
+    "JsonExtractor": JsonExtractor,
+    "CoordinateSorter":CoordinateSorter
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -50,7 +56,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "GenerateMaskFromBbox": "GenerateMaskFromBbox",
     "RandomColorGenerator": "RandomColorGenerator",
     "RandomSwitch": "RandomSwitch",
-    "StringBuilder": "StringBuilder"
+    "StringBuilder": "StringBuilder",
+    "GenerateMaskFromPoints": "GenerateMaskFromPoints",
+    "JsonExtractor": "JsonExtractor",
+    "CoordinateSorter": "CoordinateSorter"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

@@ -21,7 +21,7 @@ class GenerateMaskFromBbox:
 
     RETURN_TYPES = ("MASK",)
     FUNCTION = "generate_mask_from_bbox"
-    CATEGORY = "✨✨✨design-ai"
+    CATEGORY = "✨✨✨design-ai/mask"
 
     def generate_mask_from_bbox(self, bboxes, width, height, trapezoid_ratio, scale_x, scale_y, shift_x_percent, shift_y_percent, blur_percent):
         # 解析边界框字符串为列表
