@@ -16,6 +16,7 @@ class GenerateMaskFromBbox:
                 "shift_x_percent": ("FLOAT", {"default": 0.0, "min": -1.0, "max": 1.0, "step": 0.01}),  # X轴位移百分比
                 "shift_y_percent": ("FLOAT", {"default": 0.0, "min": -1.0, "max": 1.0, "step": 0.01}),  # Y轴位移百分比
                 "blur_percent": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0}),  # 模糊百分比
+                "rotation_angle": ("FLOAT", {"default": 0.0, "min": -180.0, "max": 180.0, "step": 0.1}),  # 旋转角度
             },
         }
 
@@ -23,7 +24,7 @@ class GenerateMaskFromBbox:
     FUNCTION = "generate_mask_from_bbox"
     CATEGORY = "✨✨✨design-ai/mask"
 
-    def generate_mask_from_bbox(self, bboxes, width, height, trapezoid_ratio, scale_x, scale_y, shift_x_percent, shift_y_percent, blur_percent):
+    def generate_mask_from_bbox(self, bboxes, width, height, trapezoid_ratio, scale_x, scale_y, shift_x_percent, shift_y_percent, blur_percent, rotation_angle):
         # 解析边界框字符串为列表
         bboxes = eval(bboxes)
 
@@ -83,6 +84,18 @@ class GenerateMaskFromBbox:
                 y2 += shift_y
                 top_x1 += shift_x
                 top_x2 += shift_x
+
+                # Apply rotation
+                if rotation_angle != 0.0:
+                    rotation_matrix = cv2.getRotationMatrix2D((center_x, center_y), rotation_angle, 1.0)
+                    points = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2], [top_x1, y1], [top_x2, y1]])
+                    rotated_points = cv2.transform(np.array([points]), rotation_matrix)[0]
+                    x1, y1 = rotated_points[0]
+                    x2, y1 = rotated_points[1]
+                    x2, y2 = rotated_points[2]
+                    x1, y2 = rotated_points[3]
+                    top_x1, y1 = rotated_points[4]
+                    top_x2, y1 = rotated_points[5]
 
                 # Draw the trapezoid on the mask
                 for y in range(int(y1), int(y2)):

@@ -17,6 +17,8 @@ from .string_builder import StringBuilder
 from .generate_mask_from_points import GenerateMaskFromPoints
 from .json_extractor import JsonExtractor
 from .coordinate_sorter import CoordinateSorter
+from .angle_calculator import AngleCalculator
+from .transform_bbox import TransformBbox
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -37,7 +39,9 @@ NODE_CLASS_MAPPINGS = {
     "StringBuilder": StringBuilder,
     "GenerateMaskFromPoints": GenerateMaskFromPoints,
     "JsonExtractor": JsonExtractor,
-    "CoordinateSorter":CoordinateSorter
+    "CoordinateSorter":CoordinateSorter,
+    "AngleCalculator":AngleCalculator,
+    "TransformBbox":TransformBbox
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -59,7 +63,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "StringBuilder": "StringBuilder",
     "GenerateMaskFromPoints": "GenerateMaskFromPoints",
     "JsonExtractor": "JsonExtractor",
-    "CoordinateSorter": "CoordinateSorter"
+    "CoordinateSorter": "CoordinateSorter",
+    "AngleCalculator": "AngleCalculator",
+    "TransformBbox": "TransformBbox"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
