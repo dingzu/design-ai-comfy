@@ -19,6 +19,12 @@ from .json_extractor import JsonExtractor
 from .coordinate_sorter import CoordinateSorter
 from .angle_calculator import AngleCalculator
 from .transform_bbox import TransformBbox
+from .filter_bbox import FilterBbox
+from .color_name_generator import ColorNameGenerator
+from .analyze_image_colors import AnalyzeImageColors
+from .calculate_weighted_average_color import CalculateWeightedAverageColor
+from .recommend_background_color import RecommendBackgroundColor
+
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -41,7 +47,12 @@ NODE_CLASS_MAPPINGS = {
     "JsonExtractor": JsonExtractor,
     "CoordinateSorter":CoordinateSorter,
     "AngleCalculator":AngleCalculator,
-    "TransformBbox":TransformBbox
+    "TransformBbox":TransformBbox,
+    "FilterBbox":FilterBbox,
+    "ColorNameGenerator":ColorNameGenerator,
+    "AnalyzeImageColors":AnalyzeImageColors,
+    "CalculateWeightedAverageColor": CalculateWeightedAverageColor,
+    "RecommendBackgroundColor": RecommendBackgroundColor
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -65,7 +76,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JsonExtractor": "JsonExtractor",
     "CoordinateSorter": "CoordinateSorter",
     "AngleCalculator": "AngleCalculator",
-    "TransformBbox": "TransformBbox"
+    "TransformBbox": "TransformBbox",
+    "FilterBbox":"FilterBbox",
+    "ColorNameGenerator": "ColorNameGenerator",
+    "AnalyzeImageColors":"AnalyzeImageColors",
+    "CalculateWeightedAverageColor": "CalculateWeightedAverageColor",
+    "RecommendBackgroundColor": "RecommendBackgroundColor"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
