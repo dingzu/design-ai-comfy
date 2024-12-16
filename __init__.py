@@ -24,6 +24,9 @@ from .color_name_generator import ColorNameGenerator
 from .analyze_image_colors import AnalyzeImageColors
 from .calculate_weighted_average_color import CalculateWeightedAverageColor
 from .recommend_background_color import RecommendBackgroundColor
+from .resize_img_and_mask_pro import ResizeImgAndMaskPro
+from .layer_transform import LayerTransform
+from .layer_transform_no_mask import LayerTransformNoMask
 
 
 NODE_CLASS_MAPPINGS = {
@@ -52,7 +55,10 @@ NODE_CLASS_MAPPINGS = {
     "ColorNameGenerator":ColorNameGenerator,
     "AnalyzeImageColors":AnalyzeImageColors,
     "CalculateWeightedAverageColor": CalculateWeightedAverageColor,
-    "RecommendBackgroundColor": RecommendBackgroundColor
+    "RecommendBackgroundColor": RecommendBackgroundColor,
+    "ResizeImgAndMaskPro": ResizeImgAndMaskPro,
+    "LayerTransform": LayerTransform,
+    "LayerTransformNoMask": LayerTransformNoMask,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -81,7 +87,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ColorNameGenerator": "ColorNameGenerator",
     "AnalyzeImageColors":"AnalyzeImageColors",
     "CalculateWeightedAverageColor": "CalculateWeightedAverageColor",
-    "RecommendBackgroundColor": "RecommendBackgroundColor"
+    "RecommendBackgroundColor": "RecommendBackgroundColor",
+    "ResizeImgAndMaskPro": "Resize_img_and_mask_pro",
+    "LayerTransform": "LayerTransform",
+    "LayerTransformNoMask": "LayerTransformNoMask",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

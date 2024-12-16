@@ -17,9 +17,9 @@ class JsonExtractor:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "input_json": ("STRING", {"default": ""}),
-                "extract_syntax": ("STRING", {"default": ""}),
-                "output_syntax": ("STRING", {"default": ""}),
+                "input_json": ("STRING", {"default": "", "multiline": True}),
+                "extract_syntax": ("STRING", {"default": "", "multiline": True}),
+                "output_syntax": ("STRING", {"default": "", "multiline": True}),
             }
         }
 

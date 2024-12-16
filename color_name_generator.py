@@ -10,7 +10,27 @@ class ColorNameGenerator:
         return {
             "required": {
                 "hex_color": ("STRING", {"default": "#000000"}),
-                "config_json": ("STRING", {"default": "{}", "multiline": True}),
+                "config_json": ("STRING", {
+                    "default": """[
+                        {
+                            "name": "红色",
+                            "conditions": {
+                                "h": [350, 10],
+                                "s": [50, 100],
+                                "l": [20, 60]
+                            }
+                        },
+                        {
+                            "name": "红色",
+                            "conditions": {
+                                "h": [350, 10],
+                                "s": [30, 50],
+                                "l": [40, 80]
+                            }
+                        }
+                    ]""",
+                    "multiline": True
+                }),
             },
         }
 
@@ -32,15 +52,20 @@ class ColorNameGenerator:
         l *= 100
 
         # Parse the configuration JSON
-        config = json.loads(config_json)
+        try:
+            rules = json.loads(config_json)
+            if not isinstance(rules, list):
+                return ("配置格式错误：需要是规则列表",)
+        except json.JSONDecodeError:
+            return ("JSON 格式错误",)
 
-        # Sort the rules by priority (assuming the order in the JSON defines priority)
-        sorted_rules = sorted(config.items(), key=lambda x: list(config.keys()).index(x[0]))
-
-        # Find the matching rule
-        for rule_name, rule_conditions in sorted_rules:
-            if self.match_rule(h, s, l, rule_conditions):
-                return (rule_name,)
+        # Find the first matching rule
+        for rule in rules:
+            if not isinstance(rule, dict) or 'name' not in rule or 'conditions' not in rule:
+                continue
+            
+            if self.match_rule(h, s, l, rule['conditions']):
+                return (rule['name'],)
 
         return ("未知颜色",)
 
