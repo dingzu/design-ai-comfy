@@ -14,7 +14,7 @@ from .kwai_font_models import config
 import json
 import pickle
  
-# Yuzumarker 模型推理节点 
+
 class Resnet50_Runner:
     @classmethod
     def INPUT_TYPES(s):
@@ -30,8 +30,8 @@ class Resnet50_Runner:
     # 节点目录映射
     CATEGORY = "✨✨✨design-ai/kwaifont"
  
-    RETURN_TYPES = ("STRING", "IMAGE")
-    RETURN_NAMES =("font_type", "demo_images")
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES =("font_type", )
     FUNCTION = "run_resnet50_model"
  
     def run_resnet50_model(self, image, resnet50_model, font_list, output_top_num):
@@ -63,15 +63,9 @@ class Resnet50_Runner:
 
         # 尺寸转换
         img = image.permute(0, 3, 2, 1)
-
         img_resize = F.interpolate(img, size=(512, 512), mode='bilinear', align_corners=False).squeeze(0)
 
-        base_demo_dir = folder_paths.models_dir + "/kwaifont/resnet50/demo_fonts/"
-        demo_font_images = os.listdir(base_demo_dir)
-        demo_font_images = sorted(demo_font_images, key=lambda x: int(x.split('.')[0]))
-        # print(demo_font_images)
         result = []
-        out = []
 
         with torch.no_grad():
             # 转换为cuda并推理
@@ -83,28 +77,24 @@ class Resnet50_Runner:
             for i in range(output_top_num):
                 # 输出用户指定的排名前几的字体识别结果和分数
                 # res = [font_list[str(indicies[1][i].to('cpu').item())], f"{float(indicies[0][i].to('cpu').item()):.8f}"]
-                res = str(indicies[1][i].to('cpu').item()).ljust(5) + str(font_list[str(indicies[1][i].to('cpu').item())]).ljust(40) + ": " + f"{float(indicies[0][i].to('cpu').item()):.8f}"
-                result.append(res)
-            # 输出demo字体样式图
-            demo_image = Image.open(base_demo_dir + demo_font_images[int(indicies[1][0].to('cpu').item())])
-            annotated_image_tensor = F1.to_tensor(demo_image)
-            out_tensor = annotated_image_tensor[:3, :, :].unsqueeze(0).permute(0, 2, 3, 1).cpu().float()
-            out.append(out_tensor)
-        
-        res_str = "\n".join(result)
-        out_demo = torch.cat(out, dim=0)
+                # index = indicies[1][i].to('cpu').item()
+                font_family = font_list[str(indicies[1][i].to('cpu').item())]
+                score = f"{float(indicies[0][i].to('cpu').item()):.8f}"
+                result.append({"font_family":font_family, "'score":score})
+ 
+        res_str = str(result)
 
-        return (res_str, out_demo,)
+        return (res_str, )
 
 # Yuzumarker 模型加载节点
 class Resnet50_Loader:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
-            "model": ([item.name for item in Path(folder_paths.models_dir, "kwaifont/resnet50/checkpoint").iterdir()], {"tooltip": 
-            "models are expected to be in Comfyui/models/kwaifont/resnet50/checkpoint folder"}),
-            "font_data": ([item.name for item in Path(folder_paths.models_dir, "kwaifont/resnet50/font_data").iterdir()], {"tooltip": 
-            "models are expected to be in Comfyui/models/kwaifont/resnet50/font_data folder"}),
+            "model": ([item.name for item in Path(folder_paths.models_dir, "kwaifont").iterdir()], {"tooltip": 
+            "models are expected to be in like Comfyui/models/kwaifont/resnet50_alldata dir"}),
+            # "font_data": ([item.name for item in Path(folder_paths.models_dir, "kwaifont/resnet50/font_data").iterdir()], {"tooltip": 
+            # "models are expected to be in Comfyui/models/kwaifont/resnet50/font_data folder"}),
             }
         }
     RETURN_TYPES = ("RESNET50MODEL", "FONTLIST",)
@@ -112,16 +102,18 @@ class Resnet50_Loader:
     FUNCTION = "loadmodel"
     CATEGORY = "✨✨✨design-ai/kwaifont"
 
-    def loadmodel(self, model, font_data):
+    def loadmodel(self, model):
+        font_path = Path(folder_paths.models_dir, "kwaifont", model)
 
-        font_data_path = Path(folder_paths.models_dir, "kwaifont/resnet50/font_data", font_data)
+        font_data_path = str(font_path) + '/' + [i for i in os.listdir(font_path) if i.endswith('.bin')][0]
+        model_path = str(font_path) + '/'  + [i for i in os.listdir(font_path) if not i.endswith('.bin')][0]
+
         # 读取字体分类映射表
         with open(font_data_path, 'rb') as file:
             json_str = pickle.load(file)
         font_list_data = json.loads(json_str)
 
         # 加载模型
-        model_path = Path(folder_paths.models_dir, "kwaifont/resnet50/checkpoint", model)
         print(f"Loading model from {model_path}")
 
         load_model = ResNet50Regressor(
