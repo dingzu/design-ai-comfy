@@ -27,6 +27,11 @@ from .recommend_background_color import RecommendBackgroundColor
 from .resize_img_and_mask_pro import ResizeImgAndMaskPro
 from .layer_transform import LayerTransform
 from .layer_transform_no_mask import LayerTransformNoMask
+from .kwai_font import Resnet50_Runner
+from .kwai_font import Resnet50_Loader
+from .kwai_font import Resnet101_Runner
+from .kwai_font import Resnet101_Loader
+from .kwai_font import Image_Cropper
 
 
 NODE_CLASS_MAPPINGS = {
@@ -59,6 +64,11 @@ NODE_CLASS_MAPPINGS = {
     "ResizeImgAndMaskPro": ResizeImgAndMaskPro,
     "LayerTransform": LayerTransform,
     "LayerTransformNoMask": LayerTransformNoMask,
+    "Kwaifont_Resnet50_Runner": Resnet50_Runner,
+    "Kwaifont_Resnet50_Loader": Resnet50_Loader,
+    "Kwaifont_Resnet101_Runner": Resnet101_Runner,
+    "Kwaifont_Resnet101_Loader": Resnet101_Loader,
+    "Kwaifont_Image_Cropper": Image_Cropper,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -91,6 +101,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ResizeImgAndMaskPro": "Resize_img_and_mask_pro",
     "LayerTransform": "LayerTransform",
     "LayerTransformNoMask": "LayerTransformNoMask",
+    "Kwaifont_Resnet50_Runner": "Kwaifont_Resnet50_Runner",
+    "Kwaifont_Resnet50_Loader": "Kwaifont_Resnet50_Loader",
+    "Kwaifont_Resnet101_Runner": "Kwaifont_Resnet101_Runner",
+    "Kwaifont_Resnet101_Loader": "Kwaifont_Resnet101_Loader",
+    "Kwaifont_Image_Cropper": "Kwaifont_Image_Cropper",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
