@@ -27,6 +27,9 @@ from .recommend_background_color import RecommendBackgroundColor
 from .resize_img_and_mask_pro import ResizeImgAndMaskPro
 from .layer_transform import LayerTransform
 from .layer_transform_no_mask import LayerTransformNoMask
+from .bbox_sorter import BboxSorter
+from .bbox_container import BboxContainer
+from .bbox_measurement import BboxMeasurement
 
 
 NODE_CLASS_MAPPINGS = {
@@ -59,6 +62,9 @@ NODE_CLASS_MAPPINGS = {
     "ResizeImgAndMaskPro": ResizeImgAndMaskPro,
     "LayerTransform": LayerTransform,
     "LayerTransformNoMask": LayerTransformNoMask,
+    "BboxSorter":BboxSorter,
+    "BboxContainer":BboxContainer,
+    "BboxMeasurement":BboxMeasurement
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -91,6 +97,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ResizeImgAndMaskPro": "Resize_img_and_mask_pro",
     "LayerTransform": "LayerTransform",
     "LayerTransformNoMask": "LayerTransformNoMask",
+    "BboxSorter": "BboxSorter",
+    "BboxContainer": "BboxContainer",
+    "BboxMeasurement": "BboxMeasurement"
+
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

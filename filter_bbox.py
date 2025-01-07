@@ -14,7 +14,7 @@ class FilterBbox:
     RETURN_NAMES = ("bbox","point_list")
     RETURN_TYPES = ("STRING", "STRING",)
     FUNCTION = "filter_bbox"
-    CATEGORY = "✨✨✨design-ai/mask"
+    CATEGORY = "✨✨✨design-ai/bbox"
 
     def filter_bbox(self, base_bbox, filter_bbox):
         # 解析边界框字符串为列表
