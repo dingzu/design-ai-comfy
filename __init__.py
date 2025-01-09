@@ -30,6 +30,7 @@ from .layer_transform_no_mask import LayerTransformNoMask
 from .bbox_sorter import BboxSorter
 from .bbox_container import BboxContainer
 from .bbox_measurement import BboxMeasurement
+from .regex_processor import RegexProcessor
 
 
 NODE_CLASS_MAPPINGS = {
@@ -64,7 +65,8 @@ NODE_CLASS_MAPPINGS = {
     "LayerTransformNoMask": LayerTransformNoMask,
     "BboxSorter":BboxSorter,
     "BboxContainer":BboxContainer,
-    "BboxMeasurement":BboxMeasurement
+    "BboxMeasurement":BboxMeasurement,
+    "RegexProcessor":RegexProcessor
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -99,7 +101,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LayerTransformNoMask": "LayerTransformNoMask",
     "BboxSorter": "BboxSorter",
     "BboxContainer": "BboxContainer",
-    "BboxMeasurement": "BboxMeasurement"
+    "BboxMeasurement": "BboxMeasurement",
+    "RegexProcessor": "RegexProcessor"
 
 }
 
