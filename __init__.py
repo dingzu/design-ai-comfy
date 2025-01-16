@@ -33,6 +33,11 @@ from .bbox_measurement import BboxMeasurement
 from .regex_processor import RegexProcessor
 from .api.load_image_from_url import LoadImageFromURL
 from .logic.group_random_selector import GroupRandomSelector
+from .api.openai_text_gen import OpenAITextGenNode
+from .api.openai_vision import OpenAIVisionNode
+from .img.image_base64 import ImageBase64Node
+from .api.openai_vision_2 import OpenAIVision2Node
+
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -69,7 +74,11 @@ NODE_CLASS_MAPPINGS = {
     "BboxMeasurement":BboxMeasurement,
     "RegexProcessor":RegexProcessor,
     "LoadImageFromURL":LoadImageFromURL,
-    "GroupRandomSelector":GroupRandomSelector
+    "GroupRandomSelector":GroupRandomSelector,
+    "OpenAITextGenNode": OpenAITextGenNode,
+    "OpenAIVisionNode": OpenAIVisionNode,
+    "ImageBase64": ImageBase64Node,
+    "OpenAIVision2Node": OpenAIVision2Node
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -107,7 +116,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BboxMeasurement": "BboxMeasurement",
     "RegexProcessor": "RegexProcessor",
     "LoadImageFromURL": "LoadImageFromURL",
-    "GroupRandomSelector": "GroupRandomSelector"
+    "GroupRandomSelector": "GroupRandomSelector",
+    "OpenAITextGenNode": "OpenAITextGenNode",
+    "OpenAIVisionNode": "OpenAIVisionNode",
+    "ImageBase64Node": "ImageBase64Node",
+    "OpenAIVision2Node": "OpenAIVision2Node"
 
 }
 
