@@ -31,7 +31,8 @@ from .bbox_sorter import BboxSorter
 from .bbox_container import BboxContainer
 from .bbox_measurement import BboxMeasurement
 from .regex_processor import RegexProcessor
-
+from .api.load_image_from_url import LoadImageFromURL
+from .logic.group_random_selector import GroupRandomSelector
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -66,7 +67,9 @@ NODE_CLASS_MAPPINGS = {
     "BboxSorter":BboxSorter,
     "BboxContainer":BboxContainer,
     "BboxMeasurement":BboxMeasurement,
-    "RegexProcessor":RegexProcessor
+    "RegexProcessor":RegexProcessor,
+    "LoadImageFromURL":LoadImageFromURL,
+    "GroupRandomSelector":GroupRandomSelector
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -102,7 +105,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BboxSorter": "BboxSorter",
     "BboxContainer": "BboxContainer",
     "BboxMeasurement": "BboxMeasurement",
-    "RegexProcessor": "RegexProcessor"
+    "RegexProcessor": "RegexProcessor",
+    "LoadImageFromURL": "LoadImageFromURL",
+    "GroupRandomSelector": "GroupRandomSelector"
 
 }
 
