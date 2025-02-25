@@ -31,12 +31,14 @@ from .bbox_sorter import BboxSorter
 from .bbox_container import BboxContainer
 from .bbox_measurement import BboxMeasurement
 from .regex_processor import RegexProcessor
+from .text_file_reader import TextFileReader, GPTConfigReader
 from .api.load_image_from_url import LoadImageFromURL
 from .logic.group_random_selector import GroupRandomSelector
 from .api.openai_text_gen import OpenAITextGenNode
 from .api.openai_vision import OpenAIVisionNode
 from .img.image_base64 import ImageBase64Node
 from .api.openai_vision_2 import OpenAIVision2Node
+from .save.SaveText import SaveTextNode
 
 
 NODE_CLASS_MAPPINGS = {
@@ -73,12 +75,15 @@ NODE_CLASS_MAPPINGS = {
     "BboxContainer":BboxContainer,
     "BboxMeasurement":BboxMeasurement,
     "RegexProcessor":RegexProcessor,
+    "TextFileReader": TextFileReader,
+    "GPTConfigReader": GPTConfigReader,
     "LoadImageFromURL":LoadImageFromURL,
     "GroupRandomSelector":GroupRandomSelector,
     "OpenAITextGenNode": OpenAITextGenNode,
     "OpenAIVisionNode": OpenAIVisionNode,
     "ImageBase64": ImageBase64Node,
-    "OpenAIVision2Node": OpenAIVision2Node
+    "OpenAIVision2Node": OpenAIVision2Node,
+    "SaveTextNode": SaveTextNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -115,12 +120,15 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BboxContainer": "BboxContainer",
     "BboxMeasurement": "BboxMeasurement",
     "RegexProcessor": "RegexProcessor",
+    "TextFileReader": "TextFileReader",
+    "GPTConfigReader": "GPTConfigReader",
     "LoadImageFromURL": "LoadImageFromURL",
     "GroupRandomSelector": "GroupRandomSelector",
     "OpenAITextGenNode": "OpenAITextGenNode",
     "OpenAIVisionNode": "OpenAIVisionNode",
     "ImageBase64Node": "ImageBase64Node",
-    "OpenAIVision2Node": "OpenAIVision2Node"
+    "OpenAIVision2Node": "OpenAIVision2Node",
+    "SaveTextNode": "SaveTextNode"
 
 }
 
