@@ -39,6 +39,7 @@ from .api.openai_vision import OpenAIVisionNode
 from .img.image_base64 import ImageBase64Node
 from .api.openai_vision_2 import OpenAIVision2Node
 from .save.SaveText import SaveTextNode
+from .img.mosaic_image import MosaicImage
 
 
 NODE_CLASS_MAPPINGS = {
@@ -83,7 +84,8 @@ NODE_CLASS_MAPPINGS = {
     "OpenAIVisionNode": OpenAIVisionNode,
     "ImageBase64": ImageBase64Node,
     "OpenAIVision2Node": OpenAIVision2Node,
-    "SaveTextNode": SaveTextNode
+    "SaveTextNode": SaveTextNode,
+    "MosaicImage": MosaicImage,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -128,8 +130,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OpenAIVisionNode": "OpenAIVisionNode",
     "ImageBase64Node": "ImageBase64Node",
     "OpenAIVision2Node": "OpenAIVision2Node",
-    "SaveTextNode": "SaveTextNode"
-
+    "SaveTextNode": "SaveTextNode",
+    "MosaicImage": "img_mosaic",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
