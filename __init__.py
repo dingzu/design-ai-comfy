@@ -40,6 +40,7 @@ from .img.image_base64 import ImageBase64Node
 from .api.openai_vision_2 import OpenAIVision2Node
 from .save.SaveText import SaveTextNode
 from .img.mosaic_image import MosaicImage
+from .img.water_mark import watermark_Mark, watermark_Extract
 
 
 NODE_CLASS_MAPPINGS = {
@@ -86,6 +87,8 @@ NODE_CLASS_MAPPINGS = {
     "OpenAIVision2Node": OpenAIVision2Node,
     "SaveTextNode": SaveTextNode,
     "MosaicImage": MosaicImage,
+    "watermark_Mark": watermark_Mark,
+    "watermark_Extract": watermark_Extract,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -132,6 +135,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OpenAIVision2Node": "OpenAIVision2Node",
     "SaveTextNode": "SaveTextNode",
     "MosaicImage": "img_mosaic",
+    "watermark_Mark": "Apply Invisible Watermark",
+    "watermark_Extract": "Extract Watermark",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
