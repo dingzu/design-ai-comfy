@@ -1,6 +1,6 @@
 torch
 torchvision
-Pillow
+Pillow>=10.0.0
 numpy
 cv2
 openai>=1.0.0

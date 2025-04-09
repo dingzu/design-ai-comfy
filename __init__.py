@@ -41,6 +41,8 @@ from .api.openai_vision_2 import OpenAIVision2Node
 from .save.SaveText import SaveTextNode
 from .img.mosaic_image import MosaicImage
 from .img.water_mark import watermark_Mark, watermark_Extract
+from .api.translate_service import TranslateServiceNode
+from .save.SaveImagePro import SaveImageProNode
 
 
 NODE_CLASS_MAPPINGS = {
@@ -89,6 +91,8 @@ NODE_CLASS_MAPPINGS = {
     "MosaicImage": MosaicImage,
     "watermark_Mark": watermark_Mark,
     "watermark_Extract": watermark_Extract,
+    "TranslateService": TranslateServiceNode,
+    "SaveImagePro": SaveImageProNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -137,6 +141,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "MosaicImage": "img_mosaic",
     "watermark_Mark": "Apply Invisible Watermark",
     "watermark_Extract": "Extract Watermark",
+    "TranslateService": "TranslateService",
+    "SaveImagePro": "SaveImagePro",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
