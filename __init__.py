@@ -43,6 +43,7 @@ from .img.mosaic_image import MosaicImage
 from .img.water_mark import watermark_Mark, watermark_Extract
 from .api.translate_service import TranslateServiceNode
 from .save.SaveImagePro import SaveImageProNode
+from .img.CropByRatioAndBBox import CropByRatioAndBBox
 
 
 NODE_CLASS_MAPPINGS = {
@@ -93,6 +94,7 @@ NODE_CLASS_MAPPINGS = {
     "watermark_Extract": watermark_Extract,
     "TranslateService": TranslateServiceNode,
     "SaveImagePro": SaveImageProNode,
+    "CropByRatioAndBBox": CropByRatioAndBBox,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -143,6 +145,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "watermark_Extract": "Extract Watermark",
     "TranslateService": "TranslateService",
     "SaveImagePro": "SaveImagePro",
+    "CropByRatioAndBBox": "Crop By Ratio And BBox",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
