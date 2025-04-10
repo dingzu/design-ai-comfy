@@ -21,7 +21,7 @@ class CropByRatioAndBBox:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "MASK")
+    RETURN_TYPES = ("IMAGE", "MASK")  # 改回 MASK 类型
     FUNCTION = "crop_by_ratio"
     CATEGORY = "✨✨✨design-ai/img"
 
@@ -105,8 +105,8 @@ class CropByRatioAndBBox:
                 crop_y1 = crop_y2 - new_height
             
             result_img = img.crop((crop_x1, crop_y1, crop_x2, crop_y2))
-            # 创建全白mask（值为1.0）
-            mask = torch.ones((result_img.height, result_img.width), dtype=torch.float32)
+            # 创建全白mask - 因为这种模式下没有填充，所有区域都是原图
+            mask = np.ones((result_img.height, result_img.width), dtype=np.float32)
 
         else:  # keep_complete modes
             if crop_mode == "fill_max_keep_complete":
@@ -124,46 +124,43 @@ class CropByRatioAndBBox:
                     new_width = bbox_width
                     new_height = int(new_width / target_ratio)
 
-            # 创建新图像和mask
+            # 创建新图像
             result_img = Image.new('RGB', (new_width, new_height), (pad_color, pad_color, pad_color))
-            # 初始化为全黑mask（值为0.0）
+            # 创建mask，初始全黑（值为0）
             mask = np.zeros((new_height, new_width), dtype=np.float32)
 
             paste_x = (new_width - orig_width) // 2
             paste_y = (new_height - orig_height) // 2
 
+            # 如果原图比目标小，需要填充
             if paste_x >= 0 and paste_y >= 0:
-                # 如果原图比目标小，需要填充
+                # 粘贴原图
                 result_img.paste(img, (paste_x, paste_y))
                 
-                # 只在原图区域设置mask为1.0
+                # 在mask上将原图区域设为1.0（白色）
                 mask[paste_y:paste_y+orig_height, paste_x:paste_x+orig_width] = 1.0
             else:
                 # 如果原图比目标大，需要裁剪
                 crop_x = max(0, -paste_x)
                 crop_y = max(0, -paste_y)
-                crop_right = min(orig_width, crop_x + new_width)
-                crop_bottom = min(orig_height, crop_y + new_height)
+                crop_width = min(orig_width - crop_x, new_width)
+                crop_height = min(orig_height - crop_y, new_height)
                 
-                cropped = img.crop((crop_x, crop_y, crop_right, crop_bottom))
+                # 裁剪原图
+                cropped = img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
                 
                 # 计算粘贴位置
                 paste_x = max(0, paste_x)
                 paste_y = max(0, paste_y)
                 
+                # 粘贴裁剪后的图像
                 result_img.paste(cropped, (paste_x, paste_y))
                 
-                # 设置mask
-                crop_width = crop_right - crop_x
-                crop_height = crop_bottom - crop_y
+                # 在mask上将粘贴区域设为1.0（白色）
                 mask[paste_y:paste_y+crop_height, paste_x:paste_x+crop_width] = 1.0
-
-        # 转换为torch tensor
-        mask = torch.from_numpy(mask)
 
         # Convert back to torch tensors
         result_tensor = torch.from_numpy(np.array(result_img).astype(np.float32) / 255.0).unsqueeze(0)
-        # 确保mask是正确的形状
-        mask_tensor = mask.unsqueeze(0) if mask.dim() == 2 else mask
+        mask_tensor = torch.from_numpy(mask).unsqueeze(0)  # 直接使用NumPy数组创建mask tensor
 
         return (result_tensor, mask_tensor) 
