@@ -54,7 +54,8 @@ class TranslateServiceNode:
             response = requests.post(
                 f"{actual_base_url}/api/comfy/translate",
                 json=payload,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
+                proxies={"http": None, "https": None}
             )
             
             # 检查响应
