@@ -44,7 +44,7 @@ from .img.water_mark import watermark_Mark, watermark_Extract
 from .api.translate_service import TranslateServiceNode
 from .save.SaveImagePro import SaveImageProNode
 from .img.CropByRatioAndBBox import CropByRatioAndBBox
-
+from .img.watermark_detection import WatermarkDetector, WatermarkCheck
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -95,6 +95,8 @@ NODE_CLASS_MAPPINGS = {
     "TranslateService": TranslateServiceNode,
     "SaveImagePro": SaveImageProNode,
     "CropByRatioAndBBox": CropByRatioAndBBox,
+    "WatermarkDetector": WatermarkDetector,
+    "WatermarkCheck": WatermarkCheck
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -146,6 +148,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TranslateService": "TranslateService",
     "SaveImagePro": "SaveImagePro",
     "CropByRatioAndBBox": "Crop By Ratio And BBox",
+    "WatermarkDetector": "Watermark Detection",
+    "WatermarkCheck": "Watermark Check"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
