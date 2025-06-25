@@ -45,6 +45,12 @@ from .api.translate_service import TranslateServiceNode
 from .save.SaveImagePro import SaveImageProNode
 from .img.CropByRatioAndBBox import CropByRatioAndBBox
 from .img.watermark_detection import WatermarkDetector, WatermarkCheck
+from .api.flux_kontext_text2img import FluxKontextProNode
+from .api.flux_kontext_img2img import FluxKontextImg2ImgNode
+from .api.upload_image import UploadImageNode
+from .api.html_screenshot import HtmlScreenshotNode
+from .api.html_screenshot_viewer import HtmlScreenshotViewerNode
+from .utils.html_formatter import HtmlFormatterNode
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -96,7 +102,13 @@ NODE_CLASS_MAPPINGS = {
     "SaveImagePro": SaveImageProNode,
     "CropByRatioAndBBox": CropByRatioAndBBox,
     "WatermarkDetector": WatermarkDetector,
-    "WatermarkCheck": WatermarkCheck
+    "WatermarkCheck": WatermarkCheck,
+    "FluxKontextPro": FluxKontextProNode,
+    "FluxKontextImg2Img": FluxKontextImg2ImgNode,
+    "UploadImageNode": UploadImageNode,
+    "HtmlScreenshotNode": HtmlScreenshotNode,
+    "HtmlScreenshotViewerNode": HtmlScreenshotViewerNode,
+    "HtmlFormatterNode": HtmlFormatterNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -149,7 +161,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SaveImagePro": "SaveImagePro",
     "CropByRatioAndBBox": "Crop By Ratio And BBox",
     "WatermarkDetector": "Watermark Detection",
-    "WatermarkCheck": "Watermark Check"
+    "WatermarkCheck": "Watermark Check",
+    "FluxKontextPro": "FLUX.1 Kontext Pro",
+    "FluxKontextImg2Img": "FLUX.1 Kontext Img2Img",
+    "UploadImageNode": "Upload Image to CDN",
+    "HtmlScreenshotNode": "HTML Screenshot Generator",
+    "HtmlScreenshotViewerNode": "HTML Screenshot Viewer",
+    "HtmlFormatterNode": "HTML Formatter"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
