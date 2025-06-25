@@ -2,6 +2,8 @@ torch
 torchvision
 Pillow>=10.0.0
 numpy
-cv2
+opencv-python
 openai>=1.0.0
 requests>=2.28.0
+scikit-learn
+transformers
