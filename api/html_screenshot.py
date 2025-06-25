@@ -24,6 +24,10 @@ class HtmlScreenshotNode:
                     "default": "1",
                     "tooltip": "创建者ID"
                 }),
+                "task_type": (["screenshot", "screenshotWithJson"], {
+                    "default": "screenshot",
+                    "tooltip": "任务类型：screenshot=普通截图, screenshotWithJson=截图+JSON提取"
+                }),
                 "canvas_width": ("INT", {
                     "default": 1920,
                     "min": 100,
@@ -84,12 +88,12 @@ class HtmlScreenshotNode:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("image_big", "image_medium", "image_small", "success", "message", "task_id", "image_url_big", "image_url_medium", "image_url_small", "response_data")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("image_big", "image_medium", "image_small", "success", "message", "task_id", "image_url_big", "image_url_medium", "image_url_small", "extracted_json", "response_data")
     FUNCTION = "generate_screenshot"
     CATEGORY = "✨✨✨design-ai/api"
 
-    def generate_screenshot(self, html_code, api_token, creator, canvas_width, canvas_height, 
+    def generate_screenshot(self, html_code, api_token, creator, task_type, canvas_width, canvas_height, 
                           width, height, x, y, sync, timeout, api_url):
         try:
             # 构建参数
@@ -106,7 +110,7 @@ class HtmlScreenshotNode:
             payload = {
                 "apiToken": api_token,
                 "creator": creator,
-                "type": "screenshot",
+                "type": task_type,  # 使用用户选择的类型
                 "code": html_code,
                 "params": json.dumps(params),
                 "sync": sync
@@ -138,6 +142,16 @@ class HtmlScreenshotNode:
                         
                         resource = data.get("resource", {})
                         design_ai_resource_items = resource.get("design_ai_resource_items", [])
+                        design_ai_text_resource_items = resource.get("design_ai_text_resource_items", [])
+                        
+                        # 提取JSON数据（如果是screenshotWithJson类型）
+                        extracted_json = ""
+                        if task_type == "screenshotWithJson" and design_ai_text_resource_items:
+                            for text_item in design_ai_text_resource_items:
+                                text_content = text_item.get("text", "")
+                                if text_content:
+                                    extracted_json = text_content
+                                    break  # 取第一个有内容的text
                         
                         if design_ai_resource_items and len(design_ai_resource_items) > 0:
                             item = design_ai_resource_items[0]
@@ -162,36 +176,41 @@ class HtmlScreenshotNode:
                             overall_success = success_big or success_medium or success_small
                             
                             if overall_success:
-                                message = f"HTML截图生成成功 - Big: {'✓' if success_big else '✗'}, Medium: {'✓' if success_medium else '✗'}, Small: {'✓' if success_small else '✗'}"
+                                message_parts = [f"HTML截图生成成功 - Big: {'✓' if success_big else '✗'}, Medium: {'✓' if success_medium else '✗'}, Small: {'✓' if success_small else '✗'}"]
+                                if task_type == "screenshotWithJson" and extracted_json:
+                                    message_parts.append("JSON提取成功")
+                                elif task_type == "screenshotWithJson":
+                                    message_parts.append("JSON提取失败")
+                                message = " | ".join(message_parts)
                             else:
                                 message = f"所有图片下载失败 - Big: {msg_big}, Medium: {msg_medium}, Small: {msg_small}"
                             
                             return (image_big, image_medium, image_small, overall_success, message, task_id, 
-                                   image_url_big, image_url_medium, image_url_small, response_text)
+                                   image_url_big, image_url_medium, image_url_small, extracted_json, response_text)
                         else:
                             blank_image = self._create_blank_image()
-                            return (blank_image, blank_image, blank_image, False, "API返回数据中没有图片资源", task_id, "", "", "", response_text)
+                            return (blank_image, blank_image, blank_image, False, "API返回数据中没有图片资源", task_id, "", "", "", extracted_json, response_text)
                     else:
                         error_msg = response_json.get("errorMsg", "未知错误")
                         blank_image = self._create_blank_image()
-                        return (blank_image, blank_image, blank_image, False, f"API返回错误: {error_msg}", "", "", "", "", response_text)
+                        return (blank_image, blank_image, blank_image, False, f"API返回错误: {error_msg}", "", "", "", "", "", response_text)
                         
                 except json.JSONDecodeError:
                     blank_image = self._create_blank_image()
-                    return (blank_image, blank_image, blank_image, False, f"API响应格式错误: {response_text}", "", "", "", "", response_text)
+                    return (blank_image, blank_image, blank_image, False, f"API响应格式错误: {response_text}", "", "", "", "", "", response_text)
             else:
                 blank_image = self._create_blank_image()
-                return (blank_image, blank_image, blank_image, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", "", response_text)
+                return (blank_image, blank_image, blank_image, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", "", "", response_text)
                 
         except requests.Timeout:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"请求超时({timeout}秒)", "", "", "", "", "")
+            return (blank_image, blank_image, blank_image, False, f"请求超时({timeout}秒)", "", "", "", "", "", "")
         except requests.RequestException as e:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"网络请求错误: {str(e)}", "", "", "", "", "")
+            return (blank_image, blank_image, blank_image, False, f"网络请求错误: {str(e)}", "", "", "", "", "", "")
         except Exception as e:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "", "")
+            return (blank_image, blank_image, blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "", "", "")
 
     def _download_image(self, image_url, timeout):
         """下载图片并转换为tensor"""

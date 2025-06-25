@@ -24,8 +24,8 @@ class HtmlScreenshotViewerNode:
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "IMAGE", "IMAGE", "IMAGE", "BOOLEAN", "BOOLEAN", "BOOLEAN", "STRING")
-    RETURN_NAMES = ("formatted_json", "task_id", "image_url_big", "image_url_medium", "image_url_small", "downloaded_image_big", "downloaded_image_medium", "downloaded_image_small", "download_success_big", "download_success_medium", "download_success_small", "download_message")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "IMAGE", "IMAGE", "IMAGE", "BOOLEAN", "BOOLEAN", "BOOLEAN", "STRING", "STRING")
+    RETURN_NAMES = ("formatted_json", "task_id", "image_url_big", "image_url_medium", "image_url_small", "downloaded_image_big", "downloaded_image_medium", "downloaded_image_small", "download_success_big", "download_success_medium", "download_success_small", "download_message", "extracted_json")
     FUNCTION = "view_response"
     CATEGORY = "✨✨✨design-ai/api"
 
@@ -48,6 +48,7 @@ class HtmlScreenshotViewerNode:
             image_url_big = ""
             image_url_medium = ""
             image_url_small = ""
+            extracted_json = ""
 
             if response_json.get("code") == 1:
                 data = response_json.get("data", {})
@@ -55,12 +56,22 @@ class HtmlScreenshotViewerNode:
                 
                 resource = data.get("resource", {})
                 design_ai_resource_items = resource.get("design_ai_resource_items", [])
+                design_ai_text_resource_items = resource.get("design_ai_text_resource_items", [])
                 
+                # 提取图片URL
                 if design_ai_resource_items and len(design_ai_resource_items) > 0:
                     item = design_ai_resource_items[0]
                     image_url_big = item.get("image_url_big", "")
                     image_url_medium = item.get("image_url_medium", "")
                     image_url_small = item.get("image_url_small", "")
+
+                # 提取JSON数据
+                if design_ai_text_resource_items and len(design_ai_text_resource_items) > 0:
+                    for text_item in design_ai_text_resource_items:
+                        text_content = text_item.get("text", "")
+                        if text_content:
+                            extracted_json = text_content
+                            break  # 取第一个有内容的text
 
             # 下载三个尺寸的图片
             downloaded_image_big = None
@@ -97,6 +108,12 @@ class HtmlScreenshotViewerNode:
             if not download_success_small:
                 downloaded_image_small = self._create_blank_image()
 
+            # 添加JSON提取状态到消息中
+            if extracted_json:
+                download_messages.append("JSON: 提取成功")
+            else:
+                download_messages.append("JSON: 无数据")
+
             download_message = " | ".join(download_messages)
 
             return (
@@ -111,7 +128,8 @@ class HtmlScreenshotViewerNode:
                 download_success_big,
                 download_success_medium,
                 download_success_small,
-                download_message
+                download_message,
+                extracted_json
             )
 
         except Exception as e:
@@ -173,5 +191,6 @@ class HtmlScreenshotViewerNode:
             False,  # download_success_big
             False,  # download_success_medium
             False,  # download_success_small
-            error_message  # download_message
+            error_message,  # download_message
+            ""  # extracted_json
         ) 
