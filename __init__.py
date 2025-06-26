@@ -47,12 +47,18 @@ from .img.CropByRatioAndBBox import CropByRatioAndBBox
 from .img.watermark_detection import WatermarkDetector, WatermarkCheck
 from .api.flux_kontext_text2img import FluxKontextProNode
 from .api.flux_kontext_img2img import FluxKontextImg2ImgNode
+from .api.flux_third_party_api import FluxThirdPartyAPINode
+from .api.gpt_third_party_api import GPTThirdPartyAPINode
 from .api.upload_image import UploadImageNode
 from .api.html_screenshot import HtmlScreenshotNode
 from .api.html_screenshot_viewer import ApiResponseViewerNode
 from .api.js_editor import JsEditorNode
 from .utils.html_formatter import HtmlFormatterNode
+from .utils.html_element_extractor import HtmlElementExtractorNode
+from .utils.html_attribute_modifier import HtmlAttributeModifierNode
+from .html_extractor import HtmlExtractorNode
 from .api.ppinfra_gpt_node import PPInfraGPTNode
+from .api.gpt_image_edit import GPTImageEditNode
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -107,12 +113,18 @@ NODE_CLASS_MAPPINGS = {
     "WatermarkCheck": WatermarkCheck,
     "FluxKontextPro": FluxKontextProNode,
     "FluxKontextImg2Img": FluxKontextImg2ImgNode,
+    "FluxThirdPartyAPI": FluxThirdPartyAPINode,
+    "GPTThirdPartyAPI": GPTThirdPartyAPINode,
     "UploadImageNode": UploadImageNode,
     "HtmlScreenshotNode": HtmlScreenshotNode,
     "ApiResponseViewerNode": ApiResponseViewerNode,
     "JsEditorNode": JsEditorNode,
     "HtmlFormatterNode": HtmlFormatterNode,
-    "PPInfraGPTNode": PPInfraGPTNode
+    "HtmlElementExtractorNode": HtmlElementExtractorNode,
+    "HtmlAttributeModifierNode": HtmlAttributeModifierNode,
+    "HtmlExtractorNode": HtmlExtractorNode,
+    "PPInfraGPTNode": PPInfraGPTNode,
+    "GPTImageEditNode": GPTImageEditNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -168,12 +180,18 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "WatermarkCheck": "Watermark Check",
     "FluxKontextPro": "FLUX.1 Kontext Pro",
     "FluxKontextImg2Img": "FLUX.1 Kontext Img2Img",
+    "FluxThirdPartyAPI": "FLUX Third Party API",
+    "GPTThirdPartyAPI": "GPT Third Party API",
     "UploadImageNode": "Upload Image to CDN",
     "HtmlScreenshotNode": "HTML Screenshot Generator",
     "ApiResponseViewerNode": "API Response Viewer",
     "JsEditorNode": "JS Editor Runner",
     "HtmlFormatterNode": "HTML Formatter",
-    "PPInfraGPTNode": "PPInfra GPT Chat"
+    "HtmlElementExtractorNode": "HTML Element Extractor",
+    "HtmlAttributeModifierNode": "HTML Attribute Modifier",
+    "HtmlExtractorNode": "HTML Extractor",
+    "PPInfraGPTNode": "PPInfra GPT Chat",
+    "GPTImageEditNode": "GPT Image Edit"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
