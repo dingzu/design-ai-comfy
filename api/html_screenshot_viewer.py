@@ -5,14 +5,14 @@ from PIL import Image
 from io import BytesIO
 import json
 
-class HtmlScreenshotViewerNode:
+class ApiResponseViewerNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "response_data": ("STRING", {
                     "forceInput": True,
-                    "tooltip": "来自HTML截图节点的响应数据"
+                    "tooltip": "来自API响应节点的数据（HTML截图或JS编辑器）"
                 }),
                 "timeout": ("FLOAT", {
                     "default": 30.0,
@@ -65,7 +65,7 @@ class HtmlScreenshotViewerNode:
                     image_url_medium = item.get("image_url_medium", "")
                     image_url_small = item.get("image_url_small", "")
 
-                # 提取JSON数据
+                # 提取JSON数据（适用于HTML截图的screenshotWithJson或JS编辑器的结果）
                 if design_ai_text_resource_items and len(design_ai_text_resource_items) > 0:
                     for text_item in design_ai_text_resource_items:
                         text_content = text_item.get("text", "")

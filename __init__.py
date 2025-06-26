@@ -49,8 +49,10 @@ from .api.flux_kontext_text2img import FluxKontextProNode
 from .api.flux_kontext_img2img import FluxKontextImg2ImgNode
 from .api.upload_image import UploadImageNode
 from .api.html_screenshot import HtmlScreenshotNode
-from .api.html_screenshot_viewer import HtmlScreenshotViewerNode
+from .api.html_screenshot_viewer import ApiResponseViewerNode
+from .api.js_editor import JsEditorNode
 from .utils.html_formatter import HtmlFormatterNode
+from .api.ppinfra_gpt_node import PPInfraGPTNode
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -107,8 +109,10 @@ NODE_CLASS_MAPPINGS = {
     "FluxKontextImg2Img": FluxKontextImg2ImgNode,
     "UploadImageNode": UploadImageNode,
     "HtmlScreenshotNode": HtmlScreenshotNode,
-    "HtmlScreenshotViewerNode": HtmlScreenshotViewerNode,
-    "HtmlFormatterNode": HtmlFormatterNode
+    "ApiResponseViewerNode": ApiResponseViewerNode,
+    "JsEditorNode": JsEditorNode,
+    "HtmlFormatterNode": HtmlFormatterNode,
+    "PPInfraGPTNode": PPInfraGPTNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -166,8 +170,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxKontextImg2Img": "FLUX.1 Kontext Img2Img",
     "UploadImageNode": "Upload Image to CDN",
     "HtmlScreenshotNode": "HTML Screenshot Generator",
-    "HtmlScreenshotViewerNode": "HTML Screenshot Viewer",
-    "HtmlFormatterNode": "HTML Formatter"
+    "ApiResponseViewerNode": "API Response Viewer",
+    "JsEditorNode": "JS Editor Runner",
+    "HtmlFormatterNode": "HTML Formatter",
+    "PPInfraGPTNode": "PPInfra GPT Chat"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
