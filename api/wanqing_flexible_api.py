@@ -47,6 +47,10 @@ class WanqingFlexibleAPINode:
                     "step": 5.0,
                     "tooltip": "API请求超时时间(秒)"
                 }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "是否使用代理服务器"
+                }),
             },
             "optional": {
                 "end_user_id": ("STRING", {
@@ -152,7 +156,7 @@ class WanqingFlexibleAPINode:
             return "", error_msg, ""
 
     def call_wanqing_api(self, api_url: str, token: str, model: str, inputs: str, 
-                        timeout: float, end_user_id: Optional[str] = "wangyihan", 
+                        timeout: float, use_proxy: bool, end_user_id: Optional[str] = "wangyihan", 
                         stream: Optional[bool] = False):
         
         # 参数验证
@@ -178,6 +182,16 @@ class WanqingFlexibleAPINode:
             # 构建请求头
             headers = self.build_headers(token, end_user_id or "wangyihan")
             
+            # 配置代理
+            request_kwargs = {
+                "headers": headers,
+                "data": json.dumps(payload, ensure_ascii=False).encode('utf-8'),
+                "timeout": timeout,
+                "stream": stream
+            }
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
             print(f"发送万擎API请求...")
             print(f"API地址: {api_url}")
             print(f"模型: {model}")
@@ -185,13 +199,7 @@ class WanqingFlexibleAPINode:
             print(f"流式输出: {stream}")
             
             # 发送请求 - 使用UTF-8编码
-            response = requests.post(
-                api_url,
-                headers=headers,
-                data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
-                timeout=timeout,
-                stream=stream
-            )
+            response = requests.post(api_url, **request_kwargs)
 
             if response.status_code != 200:
                 error_msg = f"请求失败，状态码 {response.status_code}: {response.text}"

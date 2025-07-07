@@ -43,6 +43,10 @@ class JsEditorNode:
                     "default": "https://design-out.staging.kuaishou.com/api-token/fission-template/create-common-render-task",
                     "tooltip": "API地址"
                 }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "是否使用代理服务器"
+                }),
             },
         }
 
@@ -51,7 +55,7 @@ class JsEditorNode:
     FUNCTION = "run_js_editor"
     CATEGORY = "✨✨✨design-ai/api"
 
-    def run_js_editor(self, js_code, api_token, creator, go_to_url, sync, timeout, api_url):
+    def run_js_editor(self, js_code, api_token, creator, go_to_url, sync, timeout, api_url, use_proxy):
         try:
             # 构建请求数据
             payload = {
@@ -69,13 +73,17 @@ class JsEditorNode:
                 "poify-token": api_token
             }
             
+            # 配置代理
+            request_kwargs = {
+                "headers": headers,
+                "json": payload,
+                "timeout": timeout
+            }
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
             # 发送请求
-            response = requests.post(
-                api_url,
-                headers=headers,
-                json=payload,
-                timeout=timeout
-            )
+            response = requests.post(api_url, **request_kwargs)
             
             response_text = response.text
             
@@ -107,9 +115,9 @@ class JsEditorNode:
                             image_url_small = item.get("image_url_small", "")
                             
                             # 下载三个尺寸的图片
-                            image_big, success_big, msg_big = self._download_image(image_url_big, timeout) if image_url_big else (None, False, "没有big尺寸URL")
-                            image_medium, success_medium, msg_medium = self._download_image(image_url_medium, timeout) if image_url_medium else (None, False, "没有medium尺寸URL")
-                            image_small, success_small, msg_small = self._download_image(image_url_small, timeout) if image_url_small else (None, False, "没有small尺寸URL")
+                            image_big, success_big, msg_big = self._download_image(image_url_big, timeout, use_proxy) if image_url_big else (None, False, "没有big尺寸URL")
+                            image_medium, success_medium, msg_medium = self._download_image(image_url_medium, timeout, use_proxy) if image_url_medium else (None, False, "没有medium尺寸URL")
+                            image_small, success_small, msg_small = self._download_image(image_url_small, timeout, use_proxy) if image_url_small else (None, False, "没有small尺寸URL")
                             
                             # 如果下载失败，使用空白图片
                             if not success_big:
@@ -159,10 +167,15 @@ class JsEditorNode:
             blank_image = self._create_blank_image()
             return (blank_image, blank_image, blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "", "", "")
 
-    def _download_image(self, image_url, timeout):
+    def _download_image(self, image_url, timeout, use_proxy=False):
         """下载图片并转换为tensor"""
         try:
-            response = requests.get(image_url, timeout=timeout)
+            # 配置代理
+            request_kwargs = {"timeout": timeout}
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
+            response = requests.get(image_url, **request_kwargs)
             if response.status_code == 200:
                 # 从响应内容加载图片
                 image = Image.open(BytesIO(response.content))
@@ -198,4 +211,4 @@ class JsEditorNode:
         """创建空白图片tensor"""
         # 创建白色背景图片
         blank_array = np.ones((1, height, width, 3), dtype=np.float32)
-        return torch.from_numpy(blank_array) 
+        return torch.from_numpy(blank_array)
