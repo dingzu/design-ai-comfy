@@ -16,6 +16,8 @@ from .random_switch import RandomSwitch
 from .string_builder import StringBuilder
 from .generate_mask_from_points import GenerateMaskFromPoints
 from .json_extractor import JsonExtractor
+from .utils.chain_accessor import ChainAccessor
+from .utils.chain_replacer import ChainReplacer
 from .coordinate_sorter import CoordinateSorter
 from .angle_calculator import AngleCalculator
 from .transform_bbox import TransformBbox
@@ -59,6 +61,8 @@ from .utils.html_attribute_modifier import HtmlAttributeModifierNode
 from .html_extractor import HtmlExtractorNode
 from .api.ppinfra_gpt_node import PPInfraGPTNode
 from .api.gpt_image_edit import GPTImageEditNode
+from .api.wanqing_bbox_detector import WanqingBboxDetectorNode
+from .api.wanqing_flexible_api import WanqingFlexibleAPINode
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -79,6 +83,8 @@ NODE_CLASS_MAPPINGS = {
     "StringBuilder": StringBuilder,
     "GenerateMaskFromPoints": GenerateMaskFromPoints,
     "JsonExtractor": JsonExtractor,
+    "ChainAccessor": ChainAccessor,
+    "ChainReplacer": ChainReplacer,
     "CoordinateSorter":CoordinateSorter,
     "AngleCalculator":AngleCalculator,
     "TransformBbox":TransformBbox,
@@ -124,7 +130,9 @@ NODE_CLASS_MAPPINGS = {
     "HtmlAttributeModifierNode": HtmlAttributeModifierNode,
     "HtmlExtractorNode": HtmlExtractorNode,
     "PPInfraGPTNode": PPInfraGPTNode,
-    "GPTImageEditNode": GPTImageEditNode
+    "GPTImageEditNode": GPTImageEditNode,
+    "WanqingBboxDetectorNode": WanqingBboxDetectorNode,
+    "WanqingFlexibleAPINode": WanqingFlexibleAPINode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -146,6 +154,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "StringBuilder": "StringBuilder",
     "GenerateMaskFromPoints": "GenerateMaskFromPoints",
     "JsonExtractor": "JsonExtractor",
+    "ChainAccessor": "ChainAccessor",
+    "ChainReplacer": "ChainReplacer",
     "CoordinateSorter": "CoordinateSorter",
     "AngleCalculator": "AngleCalculator",
     "TransformBbox": "TransformBbox",
@@ -191,7 +201,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "HtmlAttributeModifierNode": "HTML Attribute Modifier",
     "HtmlExtractorNode": "HTML Extractor",
     "PPInfraGPTNode": "PPInfra GPT Chat",
-    "GPTImageEditNode": "GPT Image Edit"
+    "GPTImageEditNode": "GPT Image Edit",
+    "WanqingBboxDetectorNode": "wanqing_bbox_detector",
+    "WanqingFlexibleAPINode": "wanqing_flexible_api"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
