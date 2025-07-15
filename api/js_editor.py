@@ -50,8 +50,8 @@ class JsEditorNode:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("image_big", "image_medium", "image_small", "success", "message", "task_id", "image_url_big", "image_url_medium", "image_url_small", "extracted_json", "response_data")
+    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("image_big", "success", "message", "task_id", "image_url_big", "extracted_json", "response_data")
     FUNCTION = "run_js_editor"
     CATEGORY = "✨✨✨design-ai/api"
 
@@ -111,61 +111,49 @@ class JsEditorNode:
                         if design_ai_resource_items and len(design_ai_resource_items) > 0:
                             item = design_ai_resource_items[0]
                             image_url_big = item.get("image_url_big", "")
-                            image_url_medium = item.get("image_url_medium", "")
-                            image_url_small = item.get("image_url_small", "")
                             
-                            # 下载三个尺寸的图片
+                            # 只下载大尺寸图片
                             image_big, success_big, msg_big = self._download_image(image_url_big, timeout, use_proxy) if image_url_big else (None, False, "没有big尺寸URL")
-                            image_medium, success_medium, msg_medium = self._download_image(image_url_medium, timeout, use_proxy) if image_url_medium else (None, False, "没有medium尺寸URL")
-                            image_small, success_small, msg_small = self._download_image(image_url_small, timeout, use_proxy) if image_url_small else (None, False, "没有small尺寸URL")
                             
                             # 如果下载失败，使用空白图片
                             if not success_big:
                                 image_big = self._create_blank_image()
-                            if not success_medium:
-                                image_medium = self._create_blank_image()
-                            if not success_small:
-                                image_small = self._create_blank_image()
                             
-                            # 判断整体成功状态
-                            overall_success = success_big or success_medium or success_small
-                            
-                            if overall_success:
-                                message_parts = [f"JS编辑器运行成功 - Big: {'✓' if success_big else '✗'}, Medium: {'✓' if success_medium else '✗'}, Small: {'✓' if success_small else '✗'}"]
+                            if success_big:
+                                message_parts = [f"JS编辑器运行成功 - Big: ✓"]
                                 if extracted_json:
                                     message_parts.append("JSON数据提取成功")
                                 else:
                                     message_parts.append("JSON数据提取失败")
                                 message = " | ".join(message_parts)
                             else:
-                                message = f"所有图片下载失败 - Big: {msg_big}, Medium: {msg_medium}, Small: {msg_small}"
+                                message = f"图片下载失败 - Big: {msg_big}"
                             
-                            return (image_big, image_medium, image_small, overall_success, message, task_id, 
-                                   image_url_big, image_url_medium, image_url_small, extracted_json, response_text)
+                            return (image_big, success_big, message, task_id, image_url_big, extracted_json, response_text)
                         else:
                             blank_image = self._create_blank_image()
-                            return (blank_image, blank_image, blank_image, False, "API返回数据中没有图片资源", task_id, "", "", "", extracted_json, response_text)
+                            return (blank_image, False, "API返回数据中没有图片资源", task_id, "", extracted_json, response_text)
                     else:
                         error_msg = response_json.get("errorMsg", "未知错误")
                         blank_image = self._create_blank_image()
-                        return (blank_image, blank_image, blank_image, False, f"API返回错误: {error_msg}", "", "", "", "", "", response_text)
+                        return (blank_image, False, f"API返回错误: {error_msg}", "", "", "", response_text)
                         
                 except json.JSONDecodeError:
                     blank_image = self._create_blank_image()
-                    return (blank_image, blank_image, blank_image, False, f"API响应格式错误: {response_text}", "", "", "", "", "", response_text)
+                    return (blank_image, False, f"API响应格式错误: {response_text}", "", "", "", response_text)
             else:
                 blank_image = self._create_blank_image()
-                return (blank_image, blank_image, blank_image, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", "", "", response_text)
+                return (blank_image, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", response_text)
                 
         except requests.Timeout:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"请求超时({timeout}秒)", "", "", "", "", "", "")
+            return (blank_image, False, f"请求超时({timeout}秒)", "", "", "", "")
         except requests.RequestException as e:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"网络请求错误: {str(e)}", "", "", "", "", "", "")
+            return (blank_image, False, f"网络请求错误: {str(e)}", "", "", "", "")
         except Exception as e:
             blank_image = self._create_blank_image()
-            return (blank_image, blank_image, blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "", "", "")
+            return (blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "")
 
     def _download_image(self, image_url, timeout, use_proxy=False):
         """下载图片并转换为tensor"""
