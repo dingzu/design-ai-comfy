@@ -63,6 +63,7 @@ from .api.ppinfra_gpt_node import PPInfraGPTNode
 from .api.gpt_image_edit import GPTImageEditNode
 from .api.wanqing_bbox_detector import WanqingBboxDetectorNode
 from .api.wanqing_flexible_api import WanqingFlexibleAPINode
+from .img.image_overlay import ImageOverlay
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -132,7 +133,8 @@ NODE_CLASS_MAPPINGS = {
     "PPInfraGPTNode": PPInfraGPTNode,
     "GPTImageEditNode": GPTImageEditNode,
     "WanqingBboxDetectorNode": WanqingBboxDetectorNode,
-    "WanqingFlexibleAPINode": WanqingFlexibleAPINode
+    "WanqingFlexibleAPINode": WanqingFlexibleAPINode,
+    "ImageOverlay": ImageOverlay
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -203,7 +205,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "PPInfraGPTNode": "PPInfra GPT Chat",
     "GPTImageEditNode": "GPT Image Edit",
     "WanqingBboxDetectorNode": "wanqing_bbox_detector",
-    "WanqingFlexibleAPINode": "wanqing_flexible_api"
+    "WanqingFlexibleAPINode": "wanqing_flexible_api",
+    "ImageOverlay": "Image Overlay"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

@@ -24,6 +24,16 @@ class LoadImageFromURL:
                     "max": 10,
                     "step": 1
                 }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "是否使用代理服务器"
+                }),
+            },
+            "optional": {
+                "token": ("STRING", {
+                    "default": "",
+                    "tooltip": "用于认证的Bearer Token（如果需要）"
+                }),
             },
         }
 
@@ -32,16 +42,43 @@ class LoadImageFromURL:
     FUNCTION = "load_image"
     CATEGORY = "✨✨✨design-ai/api"
 
-    def load_image(self, url, fallback_image, timeout, max_retries):
+    def build_headers(self, token: str = "") -> dict:
+        """构建请求头"""
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # 如果提供了token，添加Authorization头
+        if token and token.strip():
+            headers['Authorization'] = f'Bearer {token}'
+            
+        return headers
+
+    def load_image(self, url, fallback_image, timeout, max_retries, use_proxy, token=""):
         message = ""
         success = False
         output_image = fallback_image
+
+        # 构建请求头
+        headers = self.build_headers(token)
+        
+        # 配置请求参数
+        request_kwargs = {
+            "headers": headers,
+            "timeout": timeout
+        }
+        
+        # 配置代理
+        if use_proxy:
+            request_kwargs["proxies"] = {"http": None, "https": None}
 
         # 尝试从URL加载图片
         retry_count = 0
         while retry_count <= max_retries:
             try:
-                response = requests.get(url, timeout=timeout)
+                print(f"尝试加载图片 (第 {retry_count + 1} 次): {url}")
+                
+                response = requests.get(url, **request_kwargs)
                 if response.status_code == 200:
                     # 从响应内容加载图片
                     image = Image.open(BytesIO(response.content))
@@ -68,23 +105,31 @@ class LoadImageFromURL:
                     output_image = torch.from_numpy(np_image)
                     
                     success = True
-                    message = "Image loaded successfully"
+                    message = f"图片加载成功! 尺寸: {image.size}"
+                    print(message)
                     break
                 else:
-                    message = f"HTTP error {response.status_code}"
+                    message = f"HTTP错误 {response.status_code}: {response.reason}"
+                    print(message)
             except requests.Timeout:
-                message = f"Request timed out (attempt {retry_count + 1}/{max_retries + 1})"
+                message = f"请求超时 (第 {retry_count + 1}/{max_retries + 1} 次尝试)"
+                print(message)
             except requests.RequestException as e:
-                message = f"Request error: {str(e)}"
+                message = f"请求错误: {str(e)}"
+                print(message)
             except Exception as e:
-                message = f"Unexpected error: {str(e)}"
+                message = f"意外错误: {str(e)}"
+                print(message)
             
             retry_count += 1
             if retry_count <= max_retries:
+                print(f"等待1秒后重试...")
                 time.sleep(1)  # 重试前等待1秒
 
         if not success:
-            message = f"Failed to load image after {max_retries + 1} attempts. Using fallback image. Error: {message}"
+            final_message = f"加载图片失败，共尝试 {max_retries + 1} 次。使用备用图片。最后错误: {message}"
+            print(final_message)
+            message = final_message
 
         # 确保fallback_image也是正确的格式
         if not success and not isinstance(output_image, torch.Tensor):
