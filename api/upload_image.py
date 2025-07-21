@@ -52,9 +52,9 @@ class UploadImageNode:
                     "default": "https://design-out.staging.kuaishou.com/private-api/common/upload-file",
                     "tooltip": "上传API的URL地址"
                 }),
-                "token": ("STRING", {
+                "poify_token": ("STRING", {
                     "default": "",
-                    "tooltip": "用于认证的Bearer Token"
+                    "tooltip": "用于认证的Poify Token (poify-token header)"
                 }),
                 "use_proxy": ("BOOLEAN", {
                     "default": False,
@@ -69,7 +69,7 @@ class UploadImageNode:
     CATEGORY = "✨✨✨design-ai/api"
 
     def upload_image(self, image, upload_type, image_format, quality, 
-                    resize_enabled, resize_type, resize_value, timeout, api_url, token, use_proxy):
+                    resize_enabled, resize_type, resize_value, timeout, api_url, poify_token, use_proxy):
         try:
             # 映射upload_type描述到数字值
             upload_type_map = {
@@ -99,7 +99,7 @@ class UploadImageNode:
             )
 
             # 准备上传
-            return self._upload_to_api(processed_image, upload_type_value, timeout, api_url, token, use_proxy)
+            return self._upload_to_api(processed_image, upload_type_value, timeout, api_url, poify_token, use_proxy)
 
         except Exception as e:
             error_msg = f"图片上传失败: {str(e)}"
@@ -155,7 +155,7 @@ class UploadImageNode:
         output_buffer.seek(0)
         return output_buffer, filename, content_type
 
-    def _upload_to_api(self, image_data, upload_type, timeout, api_url, token, use_proxy):
+    def _upload_to_api(self, image_data, upload_type, timeout, api_url, poify_token, use_proxy):
         """上传图片到API"""
         buffer, filename, content_type = image_data
         
@@ -170,8 +170,8 @@ class UploadImageNode:
         
         # 构建请求头
         headers = {}
-        if token and token.strip():
-            headers['Authorization'] = f'Bearer {token}'
+        if poify_token and poify_token.strip():
+            headers['poify-token'] = poify_token
         
         # 配置代理
         request_kwargs = {
