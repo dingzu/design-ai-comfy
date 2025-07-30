@@ -49,15 +49,15 @@ class UploadImageNode:
                     "tooltip": "请求超时时间(秒)"
                 }),
                 "api_url": ("STRING", {
-                    "default": "https://design-out.staging.kuaishou.com/private-api/common/upload-file",
+                    "default": "http://poify.internal/api-token/common/upload-file",
                     "tooltip": "上传API的URL地址"
                 }),
                 "poify_token": ("STRING", {
-                    "default": "",
+                    "default": "zorD9Tk4YPATC7U3RgXtAsemT5p6a28W",
                     "tooltip": "用于认证的Poify Token (poify-token header)"
                 }),
                 "use_proxy": ("BOOLEAN", {
-                    "default": False,
+                    "default": True,
                     "tooltip": "是否使用代理服务器"
                 }),
             },

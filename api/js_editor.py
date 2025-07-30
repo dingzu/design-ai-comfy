@@ -25,7 +25,7 @@ class JsEditorNode:
                     "tooltip": "创建者ID"
                 }),
                 "go_to_url": ("STRING", {
-                    "default": "https://design-out.staging.kuaishou.com/www/server",
+                    "default": "http://poify.internal/www/server",
                     "tooltip": "编辑器页面URL"
                 }),
                 "sync": ("BOOLEAN", {
@@ -40,11 +40,11 @@ class JsEditorNode:
                     "tooltip": "请求超时时间(秒)"
                 }),
                 "api_url": ("STRING", {
-                    "default": "https://design-out.staging.kuaishou.com/api-token/fission-template/create-common-render-task",
+                    "default": "http://poify.internal/api-token/fission-template/create-common-render-task",
                     "tooltip": "API地址"
                 }),
                 "use_proxy": ("BOOLEAN", {
-                    "default": False,
+                    "default": True,
                     "tooltip": "是否使用代理服务器"
                 }),
             },
