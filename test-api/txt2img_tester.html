@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本生成图像 API 测试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .form-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input[type="text"], input[type="number"], input[type="url"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .response-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .response-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .status-success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status-error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .images-container {
+            margin-top: 20px;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .image-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .image-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .action-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: #5a67d8;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .info-box code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+        
+        .response-content {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e1e5e9;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .view-toggle {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .preset-btn {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .preset-btn:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 文本生成图像 API 测试工具</h1>
+        
+        <div class="info-box">
+            <h3>📋 API 信息</h3>
+            <p><strong>请求方法:</strong> POST</p>
+            <p><strong>目标 URL:</strong> <code>https://api.ppinfra.com/v3/seedream-3-0-txt2img</code></p>
+            <p><strong>功能:</strong> 将文本提示词转换为高质量图像</p>
+        </div>
+        
+        <form id="apiForm">
+            <div class="form-layout">
+                <!-- 基础配置 -->
+                <div class="form-section">
+                    <div class="section-title">🔧 基础配置</div>
+                    
+                    <div class="form-group">
+                        <label for="url">API URL:</label>
+                        <input type="url" id="url" value="https://api.ppinfra.com/v3/seedream-3-0-txt2img" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="authorization">Authorization:</label>
+                        <input type="text" id="authorization" placeholder="输入你的 authorization token" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contentType">Content-Type:</label>
+                        <input type="text" id="contentType" value="application/json" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prompt">提示词 (Prompt):</label>
+                        <div class="preset-buttons">
+                            <button type="button" class="preset-btn" onclick="setPrompt('a beautiful landscape with mountains and lake')">风景</button>
+                            <button type="button" class="preset-btn" onclick="setPrompt('a cute cat sitting on a chair')">猫咪</button>
+                            <button type="button" class="preset-btn" onclick="setPrompt('futuristic city skyline at sunset')">未来城市</button>
+                            <button type="button" class="preset-btn" onclick="setPrompt('abstract art with vibrant colors')">抽象艺术</button>
+                        </div>
+                        <textarea id="prompt" placeholder="描述你想要生成的图像..." required></textarea>
+                        <div class="help-text">输入详细的英文描述，越具体生成的图像越符合预期</div>
+                    </div>
+                </div>
+                
+                <!-- 图像参数 -->
+                <div class="form-section">
+                    <div class="section-title">🖼️ 图像参数</div>
+                    
+                    <div class="form-group">
+                        <label for="seed">随机种子 (Seed):</label>
+                        <input type="number" id="seed" value="123" min="1" max="999999">
+                        <div class="help-text">相同种子和提示词会生成相似图像</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="width">宽度 (Width):</label>
+                        <select id="width">
+                            <option value="512">512px</option>
+                            <option value="768">768px</option>
+                            <option value="1024" selected>1024px</option>
+                            <option value="1280">1280px</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="height">高度 (Height):</label>
+                        <select id="height">
+                            <option value="512">512px</option>
+                            <option value="768">768px</option>
+                            <option value="1024" selected>1024px</option>
+                            <option value="1280">1280px</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="usePreLlm" checked>
+                            <label for="usePreLlm">使用预处理LLM</label>
+                        </div>
+                        <div class="help-text">优化提示词以获得更好效果</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useSr" checked>
+                            <label for="useSr">使用超分辨率</label>
+                        </div>
+                        <div class="help-text">提升图像清晰度和细节</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="returnUrl" checked>
+                            <label for="returnUrl">返回图片URL</label>
+                        </div>
+                        <div class="help-text">是否返回图片的在线链接</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Logo 配置 -->
+            <div class="form-section" style="margin-bottom: 20px;">
+                <div class="section-title">🏷️ Logo 配置</div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="addLogo">
+                            <label for="addLogo">添加Logo</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logoPosition">Logo位置:</label>
+                        <select id="logoPosition">
+                            <option value="1">左上角</option>
+                            <option value="2">右上角</option>
+                            <option value="3">左下角</option>
+                            <option value="4" selected>右下角</option>
+                            <option value="5">中心</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logoLanguage">语言:</label>
+                        <select id="logoLanguage">
+                            <option value="1" selected>中文</option>
+                            <option value="2">英文</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logoOpacity">透明度 (0-100):</label>
+                        <input type="number" id="logoOpacity" value="80" min="0" max="100">
+                    </div>
+                    
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="logoTextContent">Logo文本内容:</label>
+                        <input type="text" id="logoTextContent" placeholder="输入Logo文本内容">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">🚀 生成图像</button>
+        </form>
+        
+        <!-- 添加预览请求按钮 -->
+        <button type="button" class="btn" id="previewBtn" style="background: linear-gradient(45deg, #28a745, #20c997); margin-top: 10px;">👁️ 预览请求</button>
+        
+        <!-- 请求预览区域 -->
+        <div class="response-container" id="previewContainer" style="display: none; margin-top: 20px;">
+            <div class="response-title">📋 请求预览</div>
+            <div class="response-content" id="previewContent"></div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在生成图像，请稍候...</p>
+        </div>
+        
+        <div class="response-container" id="responseContainer" style="display: none;">
+            <div class="response-title">🎨 生成结果</div>
+            <div id="statusCode"></div>
+            
+            <!-- 视图切换按钮 -->
+            <div class="view-toggle" id="viewToggle">
+                <span>显示方式:</span>
+                <button type="button" class="toggle-btn active" data-view="images">图片展示</button>
+                <button type="button" class="toggle-btn" data-view="raw">原始数据</button>
+            </div>
+            
+            <!-- 图片展示区域 -->
+            <div class="images-container" id="imagesContainer">
+                <div class="images-grid" id="imagesGrid"></div>
+            </div>
+            
+            <!-- 原始响应数据 -->
+            <div class="response-content" id="responseContent" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentView = 'images';
+        let responseData = null;
+
+        document.getElementById('apiForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const responseContainer = document.getElementById('responseContainer');
+            const statusCode = document.getElementById('statusCode');
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            responseContainer.style.display = 'none';
+            
+            try {
+                // 获取表单数据
+                const formData = getFormData();
+                
+                console.log('发送请求到:', formData.url);
+                console.log('请求头:', {
+                    'Authorization': formData.authorization ? '***' : '未设置',
+                    'Content-Type': formData.contentType
+                });
+                console.log('请求体:', JSON.stringify(formData.requestBody, null, 2));
+                
+                const response = await fetch(formData.url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': formData.authorization,
+                        'Content-Type': formData.contentType
+                    },
+                    body: JSON.stringify(formData.requestBody),
+                    mode: 'cors'
+                });
+                
+                const responseText = await response.text();
+                console.log('响应状态:', response.status, response.statusText);
+                console.log('响应内容:', responseText);
+                
+                try {
+                    responseData = JSON.parse(responseText);
+                    document.getElementById('responseContent').textContent = JSON.stringify(responseData, null, 2);
+                    
+                    // 检查是否有错误
+                    if (responseData.code && responseData.code !== 200) {
+                        throw new Error(`API 错误 ${responseData.code}: ${responseData.message || responseData.reason || '未知错误'}`);
+                    }
+                    
+                    // 渲染图片
+                    renderImages(responseData);
+                    
+                } catch (jsonError) {
+                    console.error('JSON 解析错误:', jsonError);
+                    document.getElementById('responseContent').textContent = responseText;
+                    
+                    // 如果响应不是 JSON 但状态码不是 200，显示错误
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${responseText || response.statusText}`);
+                    }
+                    
+                    document.getElementById('imagesGrid').innerHTML = '<p>响应数据格式错误，无法解析图片</p>';
+                }
+                
+                // 显示状态码
+                if (response.ok) {
+                    statusCode.innerHTML = `<span class="status-success">✅ 状态码: ${response.status} ${response.statusText}</span>`;
+                } else {
+                    statusCode.innerHTML = `<span class="status-error">❌ 状态码: ${response.status} ${response.statusText}</span>`;
+                }
+                
+                responseContainer.style.display = 'block';
+                updateView();
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                statusCode.innerHTML = `<span class="status-error">❌ 请求失败</span>`;
+                
+                let errorMessage = `错误信息: ${error.message}\n\n`;
+                
+                if (error.message.includes('提示词不能为空')) {
+                    errorMessage += '请填写提示词后重试。';
+                } else if (error.message.includes('INVALID_REQUEST_BODY')) {
+                    errorMessage += `可能的原因:\n1. 请求参数格式错误\n2. 必填参数缺失\n3. 参数值超出允许范围\n4. Authorization token 格式错误\n\n建议:\n- 检查所有必填字段是否已填写\n- 确认提示词不为空\n- 验证 Authorization token 格式\n- 检查数值参数是否在有效范围内`;
+                } else if (error.message.includes('CORS')) {
+                    errorMessage += '跨域请求被阻止，请检查浏览器设置或使用代理服务器。';
+                } else if (error.message.includes('fetch')) {
+                    errorMessage += '网络请求失败，请检查网络连接和 API 地址。';
+                } else {
+                    errorMessage += `通用建议:\n- 检查网络连接\n- 确认 API URL 正确\n- 验证 Authorization token 是否有效\n- 检查请求参数是否符合 API 规范\n- 查看浏览器控制台获取详细错误信息`;
+                }
+                
+                document.getElementById('responseContent').textContent = errorMessage;
+                responseContainer.style.display = 'block';
+                document.getElementById('imagesGrid').innerHTML = '<p>请求失败，无法生成图像</p>';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // 预览请求功能
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            try {
+                const formData = getFormDataForPreview();
+                const previewContent = `URL: ${formData.url}
+
+Headers:
+Authorization: ${formData.authorization || '[未设置 - 格式应为: Bearer your_api_key]'}
+Content-Type: ${formData.contentType}
+
+Request Body:
+${JSON.stringify(formData.requestBody, null, 2)}
+
+cURL 命令:
+curl --request POST \\
+  --url '${formData.url}' \\
+  --header 'Authorization: ${formData.authorization || 'Bearer your_api_key'}' \\
+  --header 'Content-Type: ${formData.contentType}' \\
+  --data '${JSON.stringify(formData.requestBody, null, 2)}'`;
+                
+                document.getElementById('previewContent').textContent = previewContent;
+                document.getElementById('previewContainer').style.display = 'block';
+                
+                // 滚动到预览区域
+                document.getElementById('previewContainer').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                alert('预览失败: ' + error.message);
+            }
+        });
+
+        function getFormData() {
+            // 验证必填字段
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) {
+                throw new Error('提示词不能为空');
+            }
+
+            const authorization = document.getElementById('authorization').value.trim();
+            if (!authorization) {
+                throw new Error('Authorization token 不能为空');
+            }
+
+            // 构建基础请求体
+            const requestBody = {
+                prompt: prompt,
+                seed: parseInt(document.getElementById('seed').value) || 123,
+                width: parseInt(document.getElementById('width').value) || 1024,
+                height: parseInt(document.getElementById('height').value) || 1024,
+                use_pre_llm: document.getElementById('usePreLlm').checked,
+                use_sr: document.getElementById('useSr').checked,
+                return_url: document.getElementById('returnUrl').checked
+            };
+
+            // 只有当用户选择添加 Logo 时才包含 logo_info 参数
+            const addLogo = document.getElementById('addLogo').checked;
+            if (addLogo) {
+                const logoTextContent = document.getElementById('logoTextContent').value.trim();
+                requestBody.logo_info = {
+                    add_logo: true,
+                    position: parseInt(document.getElementById('logoPosition').value),
+                    language: parseInt(document.getElementById('logoLanguage').value),
+                    opacity: parseInt(document.getElementById('logoOpacity').value),
+                    logo_text_content: logoTextContent || ""
+                };
+                
+                // 验证 Logo 相关参数
+                if (requestBody.logo_info.opacity < 0 || requestBody.logo_info.opacity > 100) {
+                    throw new Error('Logo 透明度必须在 0-100 之间');
+                }
+            }
+            // 如果不添加 Logo，则完全不包含 logo_info 参数
+
+            // 验证数值范围
+            if (requestBody.seed < 1 || requestBody.seed > 999999) {
+                throw new Error('随机种子必须在 1-999999 之间');
+            }
+
+            // 调试输出
+            console.log('构建的请求体:', JSON.stringify(requestBody, null, 2));
+
+            return {
+                url: document.getElementById('url').value.trim(),
+                authorization: authorization,
+                contentType: document.getElementById('contentType').value.trim(),
+                requestBody: requestBody
+            };
+        }
+
+        function getFormDataForPreview() {
+            // 预览模式下的数据获取，不进行严格验证
+            const prompt = document.getElementById('prompt').value.trim();
+            const authorization = document.getElementById('authorization').value.trim();
+
+            // 构建基础请求体
+            const requestBody = {
+                prompt: prompt || "[请输入提示词]",
+                seed: parseInt(document.getElementById('seed').value) || 123,
+                width: parseInt(document.getElementById('width').value) || 1024,
+                height: parseInt(document.getElementById('height').value) || 1024,
+                use_pre_llm: document.getElementById('usePreLlm').checked,
+                use_sr: document.getElementById('useSr').checked,
+                return_url: document.getElementById('returnUrl').checked
+            };
+
+            // 只有当用户选择添加 Logo 时才包含 logo_info 参数
+            const addLogo = document.getElementById('addLogo').checked;
+            if (addLogo) {
+                const logoTextContent = document.getElementById('logoTextContent').value.trim();
+                requestBody.logo_info = {
+                    add_logo: true,
+                    position: parseInt(document.getElementById('logoPosition').value),
+                    language: parseInt(document.getElementById('logoLanguage').value),
+                    opacity: parseInt(document.getElementById('logoOpacity').value),
+                    logo_text_content: logoTextContent || ""
+                };
+            }
+            // 如果不添加 Logo，则完全不包含 logo_info 参数
+
+            return {
+                url: document.getElementById('url').value.trim(),
+                authorization: authorization,
+                contentType: document.getElementById('contentType').value.trim(),
+                requestBody: requestBody
+            };
+        }
+
+        // 视图切换
+        document.getElementById('viewToggle').addEventListener('click', function(e) {
+            if (e.target.classList.contains('toggle-btn')) {
+                currentView = e.target.dataset.view;
+                
+                // 更新按钮状态
+                document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                updateView();
+            }
+        });
+
+        function updateView() {
+            const imagesContainer = document.getElementById('imagesContainer');
+            const responseContent = document.getElementById('responseContent');
+            
+            if (currentView === 'images') {
+                imagesContainer.style.display = 'block';
+                responseContent.style.display = 'none';
+            } else {
+                imagesContainer.style.display = 'none';
+                responseContent.style.display = 'block';
+            }
+        }
+
+        function renderImages(data) {
+            const imagesGrid = document.getElementById('imagesGrid');
+            
+            if (!data) {
+                imagesGrid.innerHTML = '<p>没有接收到图像数据</p>';
+                return;
+            }
+
+            let imageElements = [];
+            
+            // 处理 URL 图片
+            if (data.image_urls && Array.isArray(data.image_urls)) {
+                data.image_urls.forEach((url, index) => {
+                    if (url && url.trim()) {
+                        imageElements.push(createImageCard(url, `URL图片 ${index + 1}`, 'url'));
+                    }
+                });
+            }
+            
+            // 处理 Base64 图片
+            if (data.binary_data_base64 && Array.isArray(data.binary_data_base64)) {
+                data.binary_data_base64.forEach((base64Data, index) => {
+                    if (base64Data && base64Data.trim()) {
+                        const dataUrl = `data:image/png;base64,${base64Data}`;
+                        imageElements.push(createImageCard(dataUrl, `Base64图片 ${index + 1}`, 'base64', base64Data));
+                    }
+                });
+            }
+            
+            if (imageElements.length === 0) {
+                imagesGrid.innerHTML = '<p>没有找到可显示的图像</p>';
+            } else {
+                imagesGrid.innerHTML = imageElements.join('');
+            }
+        }
+
+        function createImageCard(src, title, type, base64Data = null) {
+            return `
+                <div class="image-card">
+                    <h4>${title}</h4>
+                    <img src="${src}" alt="${title}" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.3s;">
+                    <div class="image-actions">
+                        ${type === 'url' ? 
+                            `<a href="${src}" class="action-btn primary" target="_blank">查看原图</a>` : 
+                            `<button class="action-btn primary" onclick="downloadBase64Image('${base64Data}', '${title}')">下载图片</button>`
+                        }
+                        <button class="action-btn" onclick="copyImageLink('${src}')">复制链接</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setPrompt(promptText) {
+            document.getElementById('prompt').value = promptText;
+        }
+
+        function downloadBase64Image(base64Data, filename) {
+            try {
+                const link = document.createElement('a');
+                link.href = `data:image/png;base64,${base64Data}`;
+                link.download = `${filename}.png`;
+                link.click();
+            } catch (error) {
+                alert('下载失败: ' + error.message);
+            }
+        }
+
+        function copyImageLink(src) {
+            navigator.clipboard.writeText(src).then(() => {
+                alert('图片链接已复制到剪贴板');
+            }).catch(() => {
+                alert('复制失败，请手动复制');
+            });
+        }
+
+        // 随机种子生成
+        document.addEventListener('DOMContentLoaded', function() {
+            const seedInput = document.getElementById('seed');
+            seedInput.addEventListener('dblclick', function() {
+                this.value = Math.floor(Math.random() * 999999) + 1;
+            });
+        });
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', function() {
+            console.log('文本生成图像 API 测试工具已加载完成');
+            console.log('请填入正确的 Authorization token 并输入提示词');
+            console.log('提示：双击种子输入框可生成随机种子');
+        });
+    </script>
+</body>
+</html> 

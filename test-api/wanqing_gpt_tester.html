@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万擎 GPT 图像生成测试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="url"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus, input[type="url"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .response-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .response-content {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e1e5e9;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status-success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status-error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .info-box code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 512px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .preview-content {
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .preview-btn {
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .preview-btn:hover {
+            background: #5a6268;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group .btn, .button-group .preview-btn {
+            flex: 1;
+        }
+
+        .usage-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .environment-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .env-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .env-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .env-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .warning-box h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 万擎 GPT 图像生成测试工具</h1>
+        
+        <div class="info-box">
+            <h3>📋 API 信息</h3>
+            <p><strong>万擎网关地址:</strong></p>
+            <ul>
+                <li><strong>staging:</strong> <code>https://llm-gateway-staging.corp.kuaishou.com</code></li>
+                <li><strong>线上国内:</strong> <code>https://llm-gateway-prod.corp.kuaishou.com</code></li>
+                <li><strong>线上idc:</strong> <code>http://llm-gateway.internal</code></li>
+            </ul>
+            <p><strong>API路径:</strong> <code>/ai-serve/v1/gpt-image-1/</code></p>
+            <p><strong>必需头信息:</strong> x-api-key, Content-Type</p>
+        </div>
+
+        <div class="warning-box">
+            <h4>⚠️ 注意事项</h4>
+            <ul>
+                <li>x-api-key 需要联系 @于淼 下发</li>
+                <li>请确保网络可以访问万擎网关地址</li>
+                <li>图像生成可能需要较长时间，请耐心等待</li>
+                <li><strong>图像编辑 API 参数说明:</strong>
+                    <ul>
+                        <li>size 支持值: 1024x1024, 1024x1536, 1536x1024, auto</li>
+                        <li>output_format 支持: png, jpeg</li>
+                        <li>图像文件建议小于2MB</li>
+                        <li>支持的图像格式: PNG, JPEG</li>
+                        <li>mask遮罩为可选参数，用于指定编辑区域</li>
+                    </ul>
+                </li>
+                <li><strong>API 参数说明:</strong>
+                    <ul>
+                        <li>quality 支持值: low, medium, high, auto (不支持 standard, hd)</li>
+                        <li>style 参数已移除 (API不支持此参数)</li>
+                        <li>参数已根据实际API测试结果调整</li>
+                    </ul>
+                </li>
+                <li><strong>CORS 限制:</strong> 浏览器可能阻止跨域请求，建议使用以下方案：
+                    <ul>
+                        <li>1. 复制生成的 cURL 命令在终端执行</li>
+                        <li>2. 使用浏览器扩展禁用 CORS (仅测试环境)</li>
+                        <li>3. 通过后端服务代理请求</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>🔧 CORS 跨域解决方案</h3>
+            <p><strong>如果遇到 "Failed to fetch" 错误，这是浏览器的跨域安全限制。</strong></p>
+            <p><strong>推荐解决方案（按优先级排序）:</strong></p>
+            <ol>
+                <li><strong>使用 cURL 命令:</strong> 点击"预览请求体"复制 cURL 命令在终端执行</li>
+                <li><strong>Postman 工具:</strong> 将请求参数导入 Postman 进行测试</li>
+                <li><strong>浏览器扩展:</strong> 
+                    <ul>
+                        <li>Chrome: 安装 "CORS Unblock" 或 "Disable CORS" 扩展</li>
+                        <li>Firefox: 安装 "CORS Everywhere" 扩展</li>
+                    </ul>
+                </li>
+                <li><strong>后端代理:</strong> 通过自己的后端服务代理请求到万擎网关</li>
+            </ol>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="generations">图像生成</div>
+            <div class="tab" data-tab="edits">图像编辑</div>
+        </div>
+
+        <!-- 图像生成标签页 -->
+        <div class="tab-content active" id="generations">
+            <form id="generationsForm">
+                <div class="form-group">
+                    <label>环境选择:</label>
+                    <div class="environment-selector">
+                        <button type="button" class="env-btn active" data-env="staging">Staging</button>
+                        <button type="button" class="env-btn" data-env="prod">线上国内</button>
+                        <button type="button" class="env-btn" data-env="idc">线上IDC</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiKey">API Key (x-api-key):</label>
+                    <input type="text" id="apiKey" placeholder="请输入万擎网关key" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiVersion">API 版本:</label>
+                    <select id="apiVersion">
+                        <option value="2025-04-01-preview">2025-04-01-preview</option>
+                        <option value="2024-10-01-preview">2024-10-01-preview</option>
+                        <option value="2024-08-01-preview">2024-08-01-preview</option>
+                        <option value="2024-06-01">2024-06-01</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="prompt">图像描述 (Prompt):</label>
+                    <textarea id="prompt" placeholder="请输入图像描述，例如：生成一个带蝴蝶结的鲸鱼" required>生成一个带蝴蝶结的鲸鱼</textarea>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="imageCount">生成数量 (n):</label>
+                        <select id="imageCount">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imageSize">图像尺寸:</label>
+                        <select id="imageSize">
+                            <option value="1024x1024">1024x1024</option>
+                            <option value="1792x1024">1792x1024</option>
+                            <option value="1024x1792">1024x1792</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quality">图像质量:</label>
+                        <select id="quality">
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="outputFormat">输出格式:</label>
+                        <select id="outputFormat">
+                            <option value="png">PNG</option>
+                            <option value="jpeg">JPEG</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="preview-btn" id="previewGenerationBtn">🔍 预览请求体</button>
+                    <button type="submit" class="btn" id="generateBtn">🎨 生成图像</button>
+                </div>
+
+                <!-- 请求体预览区域 -->
+                <div class="preview-section" id="generationPreview" style="display: none;">
+                    <div class="preview-title">📋 请求预览</div>
+                    <div>
+                        <strong>请求URL:</strong>
+                        <div class="preview-content" id="generationUrl"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>请求头:</strong>
+                        <div class="preview-content" id="generationHeaders"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>请求体:</strong>
+                        <div class="preview-content" id="generationPayload"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>cURL 命令:</strong>
+                        <div class="preview-content" id="generationCurl"></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 图像编辑标签页 -->
+        <div class="tab-content" id="edits">
+            <form id="editsForm">
+                <div class="form-group">
+                    <label>环境选择:</label>
+                    <div class="environment-selector">
+                        <button type="button" class="env-btn active" data-env="staging">Staging</button>
+                        <button type="button" class="env-btn" data-env="prod">线上国内</button>
+                        <button type="button" class="env-btn" data-env="idc">线上IDC</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editApiKey">API Key (x-api-key):</label>
+                    <input type="text" id="editApiKey" placeholder="请输入万擎网关key" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editApiVersion">API 版本:</label>
+                    <select id="editApiVersion">
+                        <option value="2025-04-01-preview">2025-04-01-preview</option>
+                        <option value="2024-10-01-preview">2024-10-01-preview</option>
+                        <option value="2024-08-01-preview">2024-08-01-preview</option>
+                        <option value="2024-06-01">2024-06-01</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPrompt">编辑描述 (Prompt):</label>
+                    <textarea id="editPrompt" placeholder="请输入编辑要求，例如：将背景改为蓝色天空" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageFile">原始图像文件:</label>
+                    <input type="file" id="imageFile" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="maskFile">遮罩文件 (可选):</label>
+                    <input type="file" id="maskFile" accept="image/*">
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="editImageCount">生成数量 (n):</label>
+                        <select id="editImageCount">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editImageSize">图像尺寸:</label>
+                        <select id="editImageSize">
+                            <option value="1024x1024">1024x1024</option>
+                            <option value="1024x1536">1024x1536</option>
+                            <option value="1536x1024">1536x1024</option>
+                            <option value="auto">Auto (自动)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editOutputFormat">输出格式:</label>
+                        <select id="editOutputFormat">
+                            <option value="png">PNG</option>
+                            <option value="jpeg">JPEG</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="preview-btn" id="previewEditBtn">🔍 预览请求体</button>
+                    <button type="submit" class="btn" id="editBtn">✏️ 编辑图像</button>
+                </div>
+
+                <!-- 请求体预览区域 -->
+                <div class="preview-section" id="editPreview" style="display: none;">
+                    <div class="preview-title">📋 请求预览</div>
+                    <div>
+                        <strong>请求URL:</strong>
+                        <div class="preview-content" id="editUrl"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>请求头:</strong>
+                        <div class="preview-content" id="editHeaders"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>请求体 (FormData):</strong>
+                        <div class="preview-content" id="editPayload"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>cURL 命令:</strong>
+                        <div class="preview-content" id="editCurl"></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">正在生成图像...</p>
+        </div>
+        
+        <div class="response-container" id="responseContainer" style="display: none;">
+            <div class="response-title">📊 响应结果</div>
+            <div id="statusCode"></div>
+            
+            <!-- 图像预览区域 -->
+            <div class="image-preview" id="imagePreview" style="display: none;"></div>
+            
+            <!-- Token使用信息 -->
+            <div class="usage-info" id="usageInfo" style="display: none;"></div>
+            
+            <!-- 原始响应数据 -->
+            <div class="response-content" id="responseContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentEnv = 'staging';
+        let currentTab = 'generations';
+
+        // 环境配置
+        const environments = {
+            staging: 'https://llm-gateway-staging.corp.kuaishou.com',
+            prod: 'https://llm-gateway-prod.corp.kuaishou.com',
+            idc: 'http://llm-gateway.internal'
+        };
+
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                // 更新标签页状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+                
+                currentTab = tabName;
+            });
+        });
+
+        // 环境选择
+        document.querySelectorAll('.environment-selector').forEach(selector => {
+            selector.addEventListener('click', function(e) {
+                if (e.target.classList.contains('env-btn')) {
+                    // 更新同一组内的按钮状态
+                    selector.querySelectorAll('.env-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentEnv = e.target.dataset.env;
+                }
+            });
+        });
+
+        // 预览图像生成请求体
+        document.getElementById('previewGenerationBtn').addEventListener('click', function() {
+            const apiKey = document.getElementById('apiKey').value;
+            const apiVersion = document.getElementById('apiVersion').value;
+            const prompt = document.getElementById('prompt').value;
+            const imageCount = parseInt(document.getElementById('imageCount').value);
+            const imageSize = document.getElementById('imageSize').value;
+            const quality = document.getElementById('quality').value;
+            const outputFormat = document.getElementById('outputFormat').value;
+            
+            if (!apiKey) {
+                alert('请先填写 API Key');
+                return;
+            }
+            
+            if (!prompt) {
+                alert('请先填写图像描述');
+                return;
+            }
+            
+            const url = `${environments[currentEnv]}/ai-serve/v1/gpt-image-1/generations?api-version=${apiVersion}`;
+            
+            const payload = {
+                prompt: prompt,
+                n: imageCount,
+                size: imageSize,
+                quality: quality,
+                output_format: outputFormat
+            };
+            
+            const headers = {
+                'x-api-key': apiKey,
+                'Content-Type': 'application/json'
+            };
+            
+            // 显示预览
+            document.getElementById('generationUrl').textContent = url;
+            document.getElementById('generationHeaders').textContent = JSON.stringify(headers, null, 2);
+            document.getElementById('generationPayload').textContent = JSON.stringify(payload, null, 2);
+            
+            // 生成 cURL 命令
+            const curlCommand = generateCurlCommand(url, 'POST', headers, payload);
+            document.getElementById('generationCurl').textContent = curlCommand;
+            
+            document.getElementById('generationPreview').style.display = 'block';
+        });
+
+        // 预览图像编辑请求体
+        document.getElementById('previewEditBtn').addEventListener('click', function() {
+            const apiKey = document.getElementById('editApiKey').value;
+            const apiVersion = document.getElementById('editApiVersion').value;
+            const prompt = document.getElementById('editPrompt').value;
+            const imageCount = parseInt(document.getElementById('editImageCount').value);
+            const imageSize = document.getElementById('editImageSize').value;
+            const outputFormat = document.getElementById('editOutputFormat').value;
+            const imageFile = document.getElementById('imageFile').files[0];
+            const maskFile = document.getElementById('maskFile').files[0];
+            
+            if (!apiKey) {
+                alert('请先填写 API Key');
+                return;
+            }
+            
+            if (!prompt) {
+                alert('请先填写编辑描述');
+                return;
+            }
+            
+            if (!imageFile) {
+                alert('请先选择原始图像文件');
+                return;
+            }
+            
+            const url = `${environments[currentEnv]}/ai-serve/v1/gpt-image-1/edits?api-version=${apiVersion}`;
+            
+            const headers = {
+                'x-api-key': apiKey,
+                'Content-Type': 'multipart/form-data'
+            };
+            
+            // 构建FormData预览信息
+            let formDataPreview = `prompt: ${prompt}\n`;
+            formDataPreview += `n: ${imageCount}\n`;
+            formDataPreview += `size: ${imageSize}\n`;
+            formDataPreview += `output_format: ${outputFormat}\n`;
+            formDataPreview += `image: ${imageFile.name} (${(imageFile.size / 1024).toFixed(2)} KB)\n`;
+            
+            if (maskFile) {
+                formDataPreview += `mask: ${maskFile.name} (${(maskFile.size / 1024).toFixed(2)} KB)`;
+            } else {
+                formDataPreview += `mask: 未选择`;
+            }
+            
+            // 显示预览
+            document.getElementById('editUrl').textContent = url;
+            document.getElementById('editHeaders').textContent = JSON.stringify(headers, null, 2);
+            document.getElementById('editPayload').textContent = formDataPreview;
+            
+            // 生成 cURL 命令 (FormData)
+            const curlCommand = generateCurlFormDataCommand(url, apiKey, {
+                prompt: prompt,
+                n: imageCount,
+                size: imageSize,
+                output_format: outputFormat,
+                image: imageFile,
+                mask: maskFile
+            });
+            document.getElementById('editCurl').textContent = curlCommand;
+            
+            document.getElementById('editPreview').style.display = 'block';
+        });
+
+        // 图像生成表单提交
+        document.getElementById('generationsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const apiKey = document.getElementById('apiKey').value;
+            const apiVersion = document.getElementById('apiVersion').value;
+            const prompt = document.getElementById('prompt').value;
+            const imageCount = parseInt(document.getElementById('imageCount').value);
+            const imageSize = document.getElementById('imageSize').value;
+            const quality = document.getElementById('quality').value;
+            const outputFormat = document.getElementById('outputFormat').value;
+            
+            const url = `${environments[currentEnv]}/ai-serve/v1/gpt-image-1/generations?api-version=${apiVersion}`;
+            
+            const payload = {
+                prompt: prompt,
+                n: imageCount,
+                size: imageSize,
+                quality: quality,
+                output_format: outputFormat
+            };
+            
+            await sendRequest(url, 'POST', apiKey, payload, '正在生成图像...');
+        });
+
+        // 图像编辑表单提交
+        document.getElementById('editsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const apiKey = document.getElementById('editApiKey').value;
+            const apiVersion = document.getElementById('editApiVersion').value;
+            const prompt = document.getElementById('editPrompt').value;
+            const imageCount = parseInt(document.getElementById('editImageCount').value);
+            const imageSize = document.getElementById('editImageSize').value;
+            const outputFormat = document.getElementById('editOutputFormat').value;
+            const imageFile = document.getElementById('imageFile').files[0];
+            const maskFile = document.getElementById('maskFile').files[0];
+            
+            if (!imageFile) {
+                alert('请选择原始图像文件');
+                return;
+            }
+            
+            const url = `${environments[currentEnv]}/ai-serve/v1/gpt-image-1/edits?api-version=${apiVersion}`;
+            
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+            formData.append('n', imageCount.toString());
+            formData.append('size', imageSize);
+            formData.append('output_format', outputFormat);
+            formData.append('image', imageFile);
+            
+            if (maskFile) {
+                formData.append('mask', maskFile);
+            }
+            
+            await sendRequestFormData(url, apiKey, formData, '正在编辑图像...');
+        });
+
+        async function sendRequest(url, method, apiKey, payload, loadingText) {
+            const submitBtn = document.getElementById(currentTab === 'generations' ? 'generateBtn' : 'editBtn');
+            const loading = document.getElementById('loading');
+            const responseContainer = document.getElementById('responseContainer');
+            const statusCode = document.getElementById('statusCode');
+            const responseContent = document.getElementById('responseContent');
+            const imagePreview = document.getElementById('imagePreview');
+            const usageInfo = document.getElementById('usageInfo');
+            const loadingTextElement = document.getElementById('loadingText');
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            loadingTextElement.textContent = loadingText;
+            responseContainer.style.display = 'none';
+            
+            try {
+                console.log('发送请求到:', url);
+                console.log('请求头:', {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json'
+                });
+                console.log('请求体:', payload);
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'x-api-key': apiKey,
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'WanQing-GPT-Tester/1.0'
+                    },
+                    body: JSON.stringify(payload),
+                    mode: 'cors',
+                    credentials: 'omit',
+                    cache: 'no-cache'
+                });
+                
+                const responseText = await response.text();
+                
+                try {
+                    const responseData = JSON.parse(responseText);
+                    responseContent.textContent = JSON.stringify(responseData, null, 2);
+                    
+                    // 显示状态码
+                    if (response.ok) {
+                        statusCode.innerHTML = `<span class="status-success">✅ 状态码: ${response.status} ${response.statusText}</span>`;
+                        
+                        // 处理图像数据
+                        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
+                            displayImages(responseData.data);
+                            
+                            // 显示使用情况
+                            if (responseData.usage) {
+                                displayUsageInfo(responseData.usage);
+                            }
+                        }
+                    } else {
+                        statusCode.innerHTML = `<span class="status-error">❌ 状态码: ${response.status} ${response.statusText}</span>`;
+                    }
+                    
+                } catch (jsonError) {
+                    responseContent.textContent = responseText;
+                    statusCode.innerHTML = `<span class="status-error">❌ 响应不是有效的JSON格式</span>`;
+                    imagePreview.style.display = 'none';
+                    usageInfo.style.display = 'none';
+                }
+                
+                responseContainer.style.display = 'block';
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                statusCode.innerHTML = `<span class="status-error">❌ 请求失败</span>`;
+                
+                let errorMessage = `错误信息: ${error.message}\n\n`;
+                
+                // 检测 CORS 错误
+                if (error.message.includes('fetch') || error.message.includes('CORS') || error.message.includes('blocked')) {
+                    errorMessage += `🚫 检测到 CORS 跨域限制问题！\n\n`;
+                    errorMessage += `解决方案:\n`;
+                    errorMessage += `1. 【推荐】复制下方生成的 cURL 命令在终端执行\n`;
+                    errorMessage += `2. 安装浏览器 CORS 扩展 (仅测试环境):\n`;
+                    errorMessage += `   - Chrome: "CORS Unblock" 或 "Disable CORS"\n`;
+                    errorMessage += `   - Firefox: "CORS Everywhere"\n`;
+                    errorMessage += `3. 通过后端服务代理请求\n`;
+                    errorMessage += `4. 使用 Postman 或其他 API 测试工具\n\n`;
+                } else {
+                    errorMessage += `可能的原因:\n`;
+                    errorMessage += `1. 网络连接问题\n`;
+                    errorMessage += `2. API 服务器不可用\n`;
+                    errorMessage += `3. 认证信息错误 (x-api-key)\n`;
+                    errorMessage += `4. 万擎网关key无效\n`;
+                    errorMessage += `5. 图像文件格式不支持\n\n`;
+                    errorMessage += `建议:\n`;
+                    errorMessage += `- 检查网络连接\n`;
+                    errorMessage += `- 确认 API URL 正确\n`;
+                    errorMessage += `- 验证 x-api-key 是否有效\n`;
+                    errorMessage += `- 确保图像文件是PNG或JPEG格式\n`;
+                    errorMessage += `- 联系 @于淼 获取有效的万擎网关key\n`;
+                }
+                
+                responseContent.textContent = errorMessage;
+                responseContainer.style.display = 'block';
+                imagePreview.style.display = 'none';
+                usageInfo.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        async function sendRequestFormData(url, apiKey, formData, loadingText) {
+            const submitBtn = document.getElementById('editBtn');
+            const loading = document.getElementById('loading');
+            const responseContainer = document.getElementById('responseContainer');
+            const statusCode = document.getElementById('statusCode');
+            const responseContent = document.getElementById('responseContent');
+            const imagePreview = document.getElementById('imagePreview');
+            const usageInfo = document.getElementById('usageInfo');
+            const loadingTextElement = document.getElementById('loadingText');
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            loadingTextElement.textContent = loadingText;
+            responseContainer.style.display = 'none';
+            
+            try {
+                console.log('发送FormData请求到:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': apiKey
+                        // 注意：不要设置Content-Type，让浏览器自动设置multipart/form-data边界
+                    },
+                    body: formData,
+                    mode: 'cors',
+                    credentials: 'omit',
+                    cache: 'no-cache'
+                });
+                
+                const responseText = await response.text();
+                
+                try {
+                    const responseData = JSON.parse(responseText);
+                    responseContent.textContent = JSON.stringify(responseData, null, 2);
+                    
+                    // 显示状态码
+                    if (response.ok) {
+                        statusCode.innerHTML = `<span class="status-success">✅ 状态码: ${response.status} ${response.statusText}</span>`;
+                        
+                        // 处理图像数据
+                        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
+                            displayImages(responseData.data);
+                            
+                            // 显示使用情况
+                            if (responseData.usage) {
+                                displayUsageInfo(responseData.usage);
+                            }
+                        }
+                    } else {
+                        statusCode.innerHTML = `<span class="status-error">❌ 状态码: ${response.status} ${response.statusText}</span>`;
+                    }
+                    
+                } catch (jsonError) {
+                    responseContent.textContent = responseText;
+                    statusCode.innerHTML = `<span class="status-error">❌ 响应不是有效的JSON格式</span>`;
+                    imagePreview.style.display = 'none';
+                    usageInfo.style.display = 'none';
+                }
+                
+                responseContainer.style.display = 'block';
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                statusCode.innerHTML = `<span class="status-error">❌ 请求失败</span>`;
+                
+                let errorMessage = `错误信息: ${error.message}\n\n`;
+                
+                // 检测 CORS 错误
+                if (error.message.includes('fetch') || error.message.includes('CORS') || error.message.includes('blocked')) {
+                    errorMessage += `🚫 检测到 CORS 跨域限制问题！\n\n`;
+                    errorMessage += `解决方案:\n`;
+                    errorMessage += `1. 【推荐】复制下方生成的 cURL 命令在终端执行\n`;
+                    errorMessage += `2. 安装浏览器 CORS 扩展 (仅测试环境):\n`;
+                    errorMessage += `   - Chrome: "CORS Unblock" 或 "Disable CORS"\n`;
+                    errorMessage += `   - Firefox: "CORS Everywhere"\n`;
+                    errorMessage += `3. 通过后端服务代理请求\n`;
+                    errorMessage += `4. 使用 Postman 或其他 API 测试工具\n\n`;
+                } else {
+                    errorMessage += `可能的原因:\n`;
+                    errorMessage += `1. 网络连接问题\n`;
+                    errorMessage += `2. API 服务器不可用\n`;
+                    errorMessage += `3. 认证信息错误 (x-api-key)\n`;
+                    errorMessage += `4. 万擎网关key无效\n`;
+                    errorMessage += `5. 图像文件格式不支持\n\n`;
+                    errorMessage += `建议:\n`;
+                    errorMessage += `- 检查网络连接\n`;
+                    errorMessage += `- 确认 API URL 正确\n`;
+                    errorMessage += `- 验证 x-api-key 是否有效\n`;
+                    errorMessage += `- 确保图像文件是PNG或JPEG格式\n`;
+                    errorMessage += `- 联系 @于淼 获取有效的万擎网关key\n`;
+                }
+                
+                responseContent.textContent = errorMessage;
+                responseContainer.style.display = 'block';
+                imagePreview.style.display = 'none';
+                usageInfo.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayImages(imageData) {
+            const imagePreview = document.getElementById('imagePreview');
+            let previewHtml = '<h3>🖼️ 生成的图像:</h3>';
+            
+            imageData.forEach((item, index) => {
+                if (item.b64_json) {
+                    const imageSrc = `data:image/png;base64,${item.b64_json}`;
+                    const filename = `generated_image_${index + 1}_${Date.now()}.png`;
+                    
+                    previewHtml += `
+                        <div style="margin: 20px 0; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px;">
+                            <h4>图像 ${index + 1}</h4>
+                            <img src="${imageSrc}" alt="Generated Image ${index + 1}" style="max-width: 100%; max-height: 512px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            <br>
+                            <a href="${imageSrc}" download="${filename}" class="download-btn">📥 下载图像</a>
+                        </div>
+                    `;
+                } else if (item.url) {
+                    previewHtml += `
+                        <div style="margin: 20px 0; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px;">
+                            <h4>图像 ${index + 1}</h4>
+                            <img src="${item.url}" alt="Generated Image ${index + 1}" style="max-width: 100%; max-height: 512px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            <br>
+                            <a href="${item.url}" target="_blank" class="download-btn">🔗 查看原图</a>
+                        </div>
+                    `;
+                }
+            });
+            
+            imagePreview.innerHTML = previewHtml;
+            imagePreview.style.display = 'block';
+        }
+
+        function displayUsageInfo(usage) {
+            const usageInfo = document.getElementById('usageInfo');
+            usageInfo.innerHTML = `
+                <h4>📊 Token 使用情况:</h4>
+                <p><strong>输入 Token:</strong> ${usage.input_tokens || 0}</p>
+                <p><strong>输出 Token:</strong> ${usage.output_tokens || 0}</p>
+                <p><strong>总计 Token:</strong> ${(usage.input_tokens || 0) + (usage.output_tokens || 0)}</p>
+            `;
+            usageInfo.style.display = 'block';
+        }
+
+        // 生成 cURL 命令 (JSON 数据)
+        function generateCurlCommand(url, method, headers, payload) {
+            let curl = `curl -X ${method} \\\n`;
+            curl += `  '${url}' \\\n`;
+            
+            // 添加请求头
+            for (const [key, value] of Object.entries(headers)) {
+                curl += `  -H '${key}: ${value}' \\\n`;
+            }
+            
+            // 添加请求体
+            if (payload && Object.keys(payload).length > 0) {
+                const jsonData = JSON.stringify(payload);
+                // 转义单引号以避免命令行问题
+                const escapedData = jsonData.replace(/'/g, "'\"'\"'");
+                curl += `  -d '${escapedData}'`;
+            }
+            
+            return curl;
+        }
+
+        // 生成 cURL 命令 (FormData)
+        function generateCurlFormDataCommand(url, apiKey, formFields) {
+            let curl = `curl -X POST \\\n`;
+            curl += `  '${url}' \\\n`;
+            curl += `  -H 'x-api-key: ${apiKey}' \\\n`;
+            
+            // 添加表单字段
+            for (const [key, value] of Object.entries(formFields)) {
+                if (key === 'image' || key === 'mask') {
+                    if (value && value.name) {
+                        curl += `  -F '${key}=@${value.name}' \\\n`;
+                    }
+                } else if (value !== null && value !== undefined && value !== '') {
+                    curl += `  -F '${key}=${value}' \\\n`;
+                }
+            }
+            
+            // 移除最后的反斜杠和换行
+            curl = curl.replace(/\s\\\n$/, '');
+            
+            curl += `\n\n# 注意: 请将 @filename 替换为实际的文件路径\n`;
+            curl += `# 例如: -F 'image=@/path/to/your/image.png'`;
+            
+            return curl;
+        }
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', function() {
+            console.log('万擎 GPT 图像生成测试工具已加载完成');
+            console.log('请联系 @于淼 获取有效的万擎网关key');
+        });
+    </script>
+</body>
+</html>
