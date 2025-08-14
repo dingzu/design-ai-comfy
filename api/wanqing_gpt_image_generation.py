@@ -38,7 +38,7 @@ class WanQingGPTImageGenerationNode:
                     "step": 1,
                     "tooltip": "生成图像数量"
                 }),
-                "image_size": (["1024x1024", "1792x1024", "1024x1792"], {
+                "image_size": (["1024x1024", "1792x1024", "1024x1792", "auto"], {
                     "default": "1024x1024",
                     "tooltip": "图像尺寸"
                 }),
