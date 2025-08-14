@@ -9,7 +9,7 @@ class WanqingFlexibleAPINode:
         return {
             "required": {
                 "api_url": ("STRING", {
-                    "default": "https://wanqing-api.corp.kuaishou.com/api/llm/workflow/v1/chat/completions",
+                    "default": "http://wanqing.internal/api/llm/workflow/v1/chat/completions",
                     "tooltip": "API请求的目标地址"
                 }),
                 "token": ("STRING", {

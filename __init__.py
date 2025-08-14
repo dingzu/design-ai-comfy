@@ -63,6 +63,8 @@ from .api.ppinfra_gpt_node import PPInfraGPTNode
 from .api.gpt_image_edit import GPTImageEditNode
 from .api.wanqing_bbox_detector import WanqingBboxDetectorNode
 from .api.wanqing_flexible_api import WanqingFlexibleAPINode
+from .api.wanqing_gpt_image_generation import WanQingGPTImageGenerationNode
+from .api.wanqing_gpt_image_edit import WanQingGPTImageEditNode
 from .img.image_overlay import ImageOverlay
 
 NODE_CLASS_MAPPINGS = {
@@ -107,7 +109,7 @@ NODE_CLASS_MAPPINGS = {
     "GroupRandomSelector":GroupRandomSelector,
     "OpenAITextGenNode": OpenAITextGenNode,
     "OpenAIVisionNode": OpenAIVisionNode,
-    "ImageBase64": ImageBase64Node,
+    "ImageBase64Node": ImageBase64Node,
     "OpenAIVision2Node": OpenAIVision2Node,
     "SaveTextNode": SaveTextNode,
     "MosaicImage": MosaicImage,
@@ -134,6 +136,8 @@ NODE_CLASS_MAPPINGS = {
     "GPTImageEditNode": GPTImageEditNode,
     "WanqingBboxDetectorNode": WanqingBboxDetectorNode,
     "WanqingFlexibleAPINode": WanqingFlexibleAPINode,
+    "WanQingGPTImageGeneration": WanQingGPTImageGenerationNode,
+    "WanQingGPTImageEdit": WanQingGPTImageEditNode,
     "ImageOverlay": ImageOverlay
 }
 
@@ -206,6 +210,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "GPTImageEditNode": "GPT Image Edit",
     "WanqingBboxDetectorNode": "wanqing_bbox_detector",
     "WanqingFlexibleAPINode": "wanqing_flexible_api",
+    "WanQingGPTImageGeneration": "万擎 GPT 图像生成",
+    "WanQingGPTImageEdit": "万擎 GPT 图像编辑",
     "ImageOverlay": "Image Overlay"
 }
 
