@@ -22,10 +22,6 @@ class WanQingGPTImageEditNode:
                     "default": "",
                     "tooltip": "万擎网关API密钥 (x-api-key)"
                 }),
-                "api_version": (["2025-04-01-preview", "2024-10-01-preview", "2024-08-01-preview", "2024-06-01"], {
-                    "default": "2025-04-01-preview",
-                    "tooltip": "API版本"
-                }),
                 "image": ("IMAGE", {
                     "tooltip": "待编辑的原始图像"
                 }),
@@ -216,7 +212,7 @@ class WanQingGPTImageEditNode:
         final_size = temp_image.size
         return buffer.getvalue(), final_size
 
-    def edit_image(self, environment, api_key, api_version, image, prompt, 
+    def edit_image(self, environment, api_key, image, prompt, 
                    image_count, image_size, quality, output_format, max_file_size_mb, timeout, mask=None):
         """
         万擎 GPT 图像编辑
@@ -281,12 +277,13 @@ class WanQingGPTImageEditNode:
 
             # 构建URL
             base_url = self.environments[environment]
-            url = f"{base_url}/ai-serve/v1/gpt-image-1/edits?api-version={api_version}"
+            url = f"{base_url}/llm-serve/v1/images/edit"
             
             # 构建multipart/form-data请求
             files = {
                 'image': ('image.jpg', image_data, 'image/jpeg'),
                 'prompt': (None, prompt.strip()),
+                'model': (None, 'gpt-image-1'),
                 'n': (None, str(image_count)),
                 'size': (None, final_image_size),
                 'quality': (None, quality),
@@ -305,6 +302,7 @@ class WanQingGPTImageEditNode:
             print(f"[万擎 GPT 编辑] 发送请求到: {url}")
             print(f"[万擎 GPT 编辑] 请求参数:")
             print(f"  - prompt: {prompt.strip()}")
+            print(f"  - model: gpt-image-1")
             print(f"  - n: {image_count}")
             print(f"  - size: {final_image_size}")
             print(f"  - quality: {quality}")
@@ -328,7 +326,13 @@ class WanQingGPTImageEditNode:
             try:
                 response_data = response.json()
             except json.JSONDecodeError:
-                raise ValueError(f"无效的JSON响应: {response.text}")
+                # 如果JSON解析失败，显示原始响应内容以便调试
+                response_text = response.text if response.text else "空响应"
+                print(f"[万擎 GPT 编辑] 响应内容: {response_text}")
+                if response.status_code == 404:
+                    raise ValueError(f"API端点不存在 (404): {url}\n响应内容: {response_text}\n\n💡 建议: \n1. 检查API端点是否正确\n2. 确认图像编辑功能是否已在此环境中启用\n3. 联系 @于淼 确认正确的API端点")
+                else:
+                    raise ValueError(f"无效的JSON响应 (状态码: {response.status_code}): {response_text}")
             
             # 检查响应状态
             if not response.ok:

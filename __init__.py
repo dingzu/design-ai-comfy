@@ -65,6 +65,11 @@ from .api.wanqing_bbox_detector import WanqingBboxDetectorNode
 from .api.wanqing_flexible_api import WanqingFlexibleAPINode
 from .api.wanqing_gpt_image_generation import WanQingGPTImageGenerationNode
 from .api.wanqing_gpt_image_edit import WanQingGPTImageEditNode
+from .api.jimeng_text_to_image import JiMengTextToImageNode
+from .api.jimeng_image_to_image import JiMengImageToImageNode
+from .api.kolors_text_to_image import KolorsTextToImageNode
+from .api.kolors_image_to_image import KolorsImageToImageNode
+from .api.kolors_expand_image import KolorsExpandImageNode
 from .img.image_overlay import ImageOverlay
 
 NODE_CLASS_MAPPINGS = {
@@ -138,6 +143,11 @@ NODE_CLASS_MAPPINGS = {
     "WanqingFlexibleAPINode": WanqingFlexibleAPINode,
     "WanQingGPTImageGeneration": WanQingGPTImageGenerationNode,
     "WanQingGPTImageEdit": WanQingGPTImageEditNode,
+    "JiMengTextToImage": JiMengTextToImageNode,
+    "JiMengImageToImage": JiMengImageToImageNode,
+    "KolorsTextToImage": KolorsTextToImageNode,
+    "KolorsImageToImage": KolorsImageToImageNode,
+    "KolorsExpandImage": KolorsExpandImageNode,
     "ImageOverlay": ImageOverlay
 }
 
@@ -212,6 +222,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "WanqingFlexibleAPINode": "wanqing_flexible_api",
     "WanQingGPTImageGeneration": "万擎 GPT 图像生成",
     "WanQingGPTImageEdit": "万擎 GPT 图像编辑",
+    "JiMengTextToImage": "即梦文生图",
+    "JiMengImageToImage": "即梦图生图",
+    "KolorsTextToImage": "可图文生图",
+    "KolorsImageToImage": "可图图生图",
+    "KolorsExpandImage": "可图扩图",
     "ImageOverlay": "Image Overlay"
 }
 

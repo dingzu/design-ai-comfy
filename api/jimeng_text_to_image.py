@@ -9,13 +9,13 @@ from PIL import Image
 from typing import List, Dict, Any, Optional, Tuple
 import folder_paths
 
-class WanQingGPTImageGenerationNode:
+class JiMengTextToImageNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "environment": (["staging", "prod", "idc"], {
-                    "default": "prod",
+                    "default": "staging",
                     "tooltip": "选择万擎网关环境"
                 }),
                 "api_key": ("STRING", {
@@ -23,28 +23,35 @@ class WanQingGPTImageGenerationNode:
                     "tooltip": "万擎网关API密钥 (x-api-key)"
                 }),
                 "prompt": ("STRING", {
-                    "default": "生成一个带蝴蝶结的鲸鱼",
+                    "default": "鱼眼镜头，一只猫咪的头部，画面呈现出猫咪的五官因为拍摄方式扭曲的效果。",
                     "multiline": True,
                     "tooltip": "图像描述提示词"
                 }),
-                "image_count": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 4,
-                    "step": 1,
-                    "tooltip": "生成图像数量"
+                "response_format": (["url", "b64_json"], {
+                    "default": "b64_json",
+                    "tooltip": "响应格式"
                 }),
-                "image_size": (["1024x1024", "1792x1024", "1024x1792", "auto"], {
+                "size": (["1024x1024", "1024x1536", "1536x1024", "adaptive"], {
                     "default": "1024x1024",
                     "tooltip": "图像尺寸"
                 }),
-                "quality": (["medium", "high", "low", "auto"], {
-                    "default": "medium",
-                    "tooltip": "图像质量"
+                "seed": ("INT", {
+                    "default": 12,
+                    "min": 0,
+                    "max": 2147483647,
+                    "step": 1,
+                    "tooltip": "随机种子"
                 }),
-                "output_format": (["png", "jpeg"], {
-                    "default": "png",
-                    "tooltip": "输出格式"
+                "guidance_scale": ("FLOAT", {
+                    "default": 2.5,
+                    "min": 0.1,
+                    "max": 20.0,
+                    "step": 0.1,
+                    "tooltip": "引导强度"
+                }),
+                "watermark": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否添加水印"
                 }),
                 "timeout": ("FLOAT", {
                     "default": 120.0,
@@ -68,10 +75,10 @@ class WanQingGPTImageGenerationNode:
             "idc": "http://llm-gateway.internal"
         }
 
-    def generate_image(self, environment, api_key, prompt, image_count, 
-                      image_size, quality, output_format, timeout):
+    def generate_image(self, environment, api_key, prompt, response_format, size, 
+                      seed, guidance_scale, watermark, timeout):
         """
-        万擎 GPT 图像生成
+        即梦文生图
         """
         try:
             # 验证必需参数
@@ -87,23 +94,24 @@ class WanQingGPTImageGenerationNode:
             
             # 构建请求体
             payload = {
+                "model": "doubao-seedream-3-0-t2i-250415",
                 "prompt": prompt.strip(),
-                "model": "gpt-image-1",
-                "n": image_count,
-                "size": image_size,
-                "quality": quality,
-                "output_format": output_format
+                "response_format": response_format,
+                "size": size,
+                "seed": seed,
+                "guidance_scale": guidance_scale,
+                "watermark": watermark
             }
             
             # 设置请求头
             headers = {
                 "x-api-key": api_key.strip(),
                 "Content-Type": "application/json",
-                "User-Agent": "ComfyUI-WanQing-GPT/1.0"
+                "User-Agent": "ComfyUI-JiMeng-T2I/1.0"
             }
             
-            print(f"[万擎 GPT] 发送请求到: {url}")
-            print(f"[万擎 GPT] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+            print(f"[即梦文生图] 发送请求到: {url}")
+            print(f"[即梦文生图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 发送请求
             response = requests.post(
@@ -113,13 +121,15 @@ class WanQingGPTImageGenerationNode:
                 timeout=timeout
             )
             
-            print(f"[万擎 GPT] 响应状态码: {response.status_code}")
+            print(f"[即梦文生图] 响应状态码: {response.status_code}")
             
             # 解析响应
             try:
                 response_data = response.json()
             except json.JSONDecodeError:
-                raise ValueError(f"无效的JSON响应: {response.text}")
+                response_text = response.text if response.text else "空响应"
+                print(f"[即梦文生图] 响应内容: {response_text}")
+                raise ValueError(f"无效的JSON响应 (状态码: {response.status_code}): {response_text}")
             
             # 检查响应状态
             if not response.ok:
@@ -148,7 +158,7 @@ class WanQingGPTImageGenerationNode:
             if not image_data:
                 raise ValueError("响应中没有图像数据")
             
-            print(f"[万擎 GPT] 成功生成 {len(image_data)} 张图像")
+            print(f"[即梦文生图] 成功生成 {len(image_data)} 张图像")
             
             for idx, item in enumerate(image_data):
                 if 'b64_json' in item:
@@ -166,34 +176,63 @@ class WanQingGPTImageGenerationNode:
                     image_tensor = torch.from_numpy(image_np)[None,]
                     images_tensor.append(image_tensor)
                     
-                    print(f"[万擎 GPT] 图像 {idx + 1}: {image.size}, 模式: {image.mode}")
+                    print(f"[即梦文生图] 图像 {idx + 1}: {image.size}, 模式: {image.mode}")
                     
                 elif 'url' in item:
                     # 处理URL形式的图像
-                    print(f"[万擎 GPT] 收到图像URL: {item['url']}")
-                    # 这里可以选择下载URL图像，或者只是记录URL
-                    # 为了简化，我们暂时跳过URL形式的图像
-                    print(f"[万擎 GPT] 警告: 跳过URL形式的图像，当前版本仅支持base64格式")
+                    image_url = item['url']
+                    print(f"[即梦文生图] 收到图像URL: {image_url}")
+                    
+                    if response_format == "url":
+                        # 如果用户选择了URL格式，下载图像
+                        try:
+                            img_response = requests.get(image_url, timeout=30)
+                            img_response.raise_for_status()
+                            image = Image.open(io.BytesIO(img_response.content))
+                            
+                            # 转换为RGB
+                            if image.mode != 'RGB':
+                                image = image.convert('RGB')
+                            
+                            # 转换为tensor
+                            image_np = np.array(image).astype(np.float32) / 255.0
+                            image_tensor = torch.from_numpy(image_np)[None,]
+                            images_tensor.append(image_tensor)
+                            
+                            print(f"[即梦文生图] 下载图像 {idx + 1}: {image.size}, 模式: {image.mode}")
+                            
+                        except Exception as e:
+                            print(f"[即梦文生图] 下载图像失败: {str(e)}")
+                            continue
+                    else:
+                        print(f"[即梦文生图] 警告: 跳过URL形式的图像，当前仅支持base64格式")
             
             if not images_tensor:
-                raise ValueError("没有可用的图像数据（仅支持base64格式）")
+                raise ValueError("没有可用的图像数据")
             
             # 合并所有图像
             result_images = torch.cat(images_tensor, dim=0)
             
             # 格式化使用信息
             usage = response_data.get('usage', {})
-            usage_info = f"Token使用情况:\n"
-            usage_info += f"- 输入Token: {usage.get('input_tokens', 0)}\n"
-            usage_info += f"- 输出Token: {usage.get('output_tokens', 0)}\n"
-            usage_info += f"- 总计Token: {usage.get('input_tokens', 0) + usage.get('output_tokens', 0)}\n"
-            usage_info += f"- 生成图像数量: {len(images_tensor)}"
+            usage_info = f"即梦文生图结果:\n"
+            usage_info += f"- 模型: doubao-seedream-3-0-t2i-250415\n"
+            usage_info += f"- 种子: {seed}\n"
+            usage_info += f"- 引导强度: {guidance_scale}\n"
+            usage_info += f"- 尺寸: {size}\n"
+            usage_info += f"- 水印: {'是' if watermark else '否'}\n"
+            usage_info += f"- 生成图像数量: {len(images_tensor)}\n"
+            
+            if usage:
+                usage_info += f"- 输入Token: {usage.get('input_tokens', 0)}\n"
+                usage_info += f"- 输出Token: {usage.get('output_tokens', 0)}\n"
+                usage_info += f"- 总计Token: {usage.get('input_tokens', 0) + usage.get('output_tokens', 0)}"
             
             # 返回完整的响应JSON
             response_json = json.dumps(response_data, ensure_ascii=False, indent=2)
             
-            print(f"[万擎 GPT] 图像生成完成")
-            print(f"[万擎 GPT] {usage_info}")
+            print(f"[即梦文生图] 图像生成完成")
+            print(f"[即梦文生图] {usage_info}")
             
             return (result_images, response_json, usage_info)
             
@@ -208,9 +247,9 @@ class WanQingGPTImageGenerationNode:
 
 # 节点映射
 NODE_CLASS_MAPPINGS = {
-    "WanQingGPTImageGeneration": WanQingGPTImageGenerationNode
+    "JiMengTextToImage": JiMengTextToImageNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WanQingGPTImageGeneration": "万擎 GPT 图像生成"
+    "JiMengTextToImage": "即梦文生图"
 } 
