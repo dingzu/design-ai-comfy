@@ -26,7 +26,8 @@ from .color_name_generator import ColorNameGenerator
 from .analyze_image_colors import AnalyzeImageColors
 from .calculate_weighted_average_color import CalculateWeightedAverageColor
 from .recommend_background_color import RecommendBackgroundColor
-from .resize_img_and_mask_pro import ResizeImgAndMaskPro
+from .img.resize_img_and_mask_pro import ResizeImgAndMaskPro
+from .img.resize_by_ratio_pro import ResizeByRatioPro
 from .layer_transform import LayerTransform
 from .layer_transform_no_mask import LayerTransformNoMask
 from .bbox_sorter import BboxSorter
@@ -102,6 +103,7 @@ NODE_CLASS_MAPPINGS = {
     "CalculateWeightedAverageColor": CalculateWeightedAverageColor,
     "RecommendBackgroundColor": RecommendBackgroundColor,
     "ResizeImgAndMaskPro": ResizeImgAndMaskPro,
+    "ResizeByRatioPro": ResizeByRatioPro,
     "LayerTransform": LayerTransform,
     "LayerTransformNoMask": LayerTransformNoMask,
     "BboxSorter":BboxSorter,
@@ -181,6 +183,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CalculateWeightedAverageColor": "CalculateWeightedAverageColor",
     "RecommendBackgroundColor": "RecommendBackgroundColor",
     "ResizeImgAndMaskPro": "Resize_img_and_mask_pro",
+    "ResizeByRatioPro": "Resize_by_ratio_pro",
     "LayerTransform": "LayerTransform",
     "LayerTransformNoMask": "LayerTransformNoMask",
     "BboxSorter": "BboxSorter",

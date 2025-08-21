@@ -45,6 +45,46 @@ class KolorsTextToImageNode:
                     "step": 1.0,
                     "tooltip": "轮询间隔（秒）"
                 })
+            },
+            "optional": {
+                "response_format": (["url", "b64_json"], {
+                    "default": "url",
+                    "tooltip": "响应格式：url或b64_json"
+                }),
+                "size": ("STRING", {
+                    "default": "1024x1024",
+                    "tooltip": "图像尺寸，如1024x1024、512x512等"
+                }),
+                "seed": ("INT", {
+                    "default": -1,
+                    "min": -1,
+                    "max": 4294967295,
+                    "tooltip": "随机种子，-1为随机"
+                }),
+                "guidance_scale": ("FLOAT", {
+                    "default": 7.5,
+                    "min": 1.0,
+                    "max": 20.0,
+                    "step": 0.5,
+                    "tooltip": "引导强度，控制生成图像与提示词的匹配程度"
+                }),
+                "steps": ("INT", {
+                    "default": 20,
+                    "min": 10,
+                    "max": 100,
+                    "tooltip": "推理步数"
+                }),
+                "negative_prompt": ("STRING", {
+                    "default": "",
+                    "multiline": True,
+                    "tooltip": "负面提示词，描述不希望出现的内容"
+                }),
+                "num_images": ("INT", {
+                    "default": 1,
+                    "min": 1,
+                    "max": 4,
+                    "tooltip": "生成图像数量（注意：API可能只返回1张图片）"
+                })
             }
         }
 
@@ -146,7 +186,9 @@ class KolorsTextToImageNode:
         
         raise ValueError(f"任务超时（{timeout}秒），请稍后重试或增加超时时间")
 
-    def generate_image(self, environment, api_key, prompt, model_name, timeout, poll_interval):
+    def generate_image(self, environment, api_key, prompt, model_name, timeout, poll_interval,
+                      response_format="url", size="1024x1024", seed=-1, guidance_scale=7.5, 
+                      steps=20, negative_prompt="", num_images=1):
         """
         可图文生图
         """
@@ -161,8 +203,26 @@ class KolorsTextToImageNode:
             # 构建请求体
             payload = {
                 "model_name": model_name,
-                "prompt": prompt.strip()
+                "prompt": prompt.strip(),
+                "response_format": response_format,
+                "size": size,
+                "num_images": num_images
             }
+            
+            # 添加可选参数
+            if seed != -1:
+                payload["seed"] = seed
+                
+            if guidance_scale != 7.5:
+                payload["guidance_scale"] = guidance_scale
+                
+            if steps != 20:
+                payload["steps"] = steps
+                
+            if negative_prompt and negative_prompt.strip():
+                payload["negative_prompt"] = negative_prompt.strip()
+            
+            print(f"[可图文生图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
             task_data = self.submit_task(environment, api_key, payload)
@@ -253,6 +313,16 @@ class KolorsTextToImageNode:
             usage_info += f"- 模型: {model_name}\n"
             usage_info += f"- 任务ID: {task_id}\n"
             usage_info += f"- 提示词: {prompt.strip()}\n"
+            if negative_prompt and negative_prompt.strip():
+                usage_info += f"- 负面提示词: {negative_prompt.strip()}\n"
+            usage_info += f"- 响应格式: {response_format}\n"
+            usage_info += f"- 图像尺寸: {size}\n"
+            if seed != -1:
+                usage_info += f"- 随机种子: {seed}\n"
+            if guidance_scale != 7.5:
+                usage_info += f"- 引导强度: {guidance_scale}\n"
+            if steps != 20:
+                usage_info += f"- 推理步数: {steps}\n"
             usage_info += f"- 生成图像数量: {len(images_tensor)}\n"
             usage_info += f"- 总耗时: {total_time:.1f}秒"
             

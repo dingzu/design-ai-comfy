@@ -63,8 +63,9 @@ class WanQingGPTImageGenerationNode:
 
     def __init__(self):
         self.environments = {
-            "staging": "https://llm-gateway-staging.corp.kuaishou.com",
-            "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
+            "staging": "https://llm-gateway-staging-sgp.corp.kuaishou.com",
+            "prod": "https://llm-gateway-prod-sgp.corp.kuaishou.com", 
+            "prod-old": "https://llm-gateway-prod.corp.kuaishou.com",
             "idc": "http://llm-gateway.internal"
         }
 

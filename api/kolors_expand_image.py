@@ -81,6 +81,44 @@ class KolorsExpandImageNode:
                 "image_url": ("STRING", {
                     "default": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seededit_i2i.jpeg",
                     "tooltip": "图像URL（当未提供输入图像时使用）"
+                }),
+                "response_format": (["url", "b64_json"], {
+                    "default": "url",
+                    "tooltip": "响应格式：url或b64_json"
+                }),
+                "size": ("STRING", {
+                    "default": "adaptive",
+                    "tooltip": "图像尺寸，如1024x1024或adaptive"
+                }),
+                "seed": ("INT", {
+                    "default": -1,
+                    "min": -1,
+                    "max": 4294967295,
+                    "tooltip": "随机种子，-1为随机"
+                }),
+                "guidance_scale": ("FLOAT", {
+                    "default": 7.5,
+                    "min": 1.0,
+                    "max": 20.0,
+                    "step": 0.5,
+                    "tooltip": "引导强度，控制生成图像与提示词的匹配程度"
+                }),
+                "steps": ("INT", {
+                    "default": 20,
+                    "min": 10,
+                    "max": 100,
+                    "tooltip": "推理步数"
+                }),
+                "negative_prompt": ("STRING", {
+                    "default": "",
+                    "multiline": True,
+                    "tooltip": "负面提示词，描述不希望出现的内容"
+                }),
+                "num_images": ("INT", {
+                    "default": 1,
+                    "min": 1,
+                    "max": 4,
+                    "tooltip": "生成图像数量（注意：API可能只返回1张图片）"
                 })
             }
         }
@@ -222,7 +260,8 @@ class KolorsExpandImageNode:
 
     def expand_image(self, environment, api_key, prompt, model_name, 
                     up_expansion_ratio, down_expansion_ratio, left_expansion_ratio, right_expansion_ratio,
-                    timeout, poll_interval, image=None, image_url=None):
+                    timeout, poll_interval, image=None, image_url=None, response_format="url", 
+                    size="adaptive", seed=-1, guidance_scale=7.5, steps=20, negative_prompt="", num_images=1):
         """
         可图扩图
         """
@@ -261,8 +300,26 @@ class KolorsExpandImageNode:
                 "up_expansion_ratio": up_expansion_ratio,
                 "down_expansion_ratio": down_expansion_ratio,
                 "left_expansion_ratio": left_expansion_ratio,
-                "right_expansion_ratio": right_expansion_ratio
+                "right_expansion_ratio": right_expansion_ratio,
+                "response_format": response_format,
+                "size": size,
+                "num_images": num_images
             }
+            
+            # 添加可选参数
+            if seed != -1:
+                payload["seed"] = seed
+                
+            if guidance_scale != 7.5:
+                payload["guidance_scale"] = guidance_scale
+                
+            if steps != 20:
+                payload["steps"] = steps
+                
+            if negative_prompt and negative_prompt.strip():
+                payload["negative_prompt"] = negative_prompt.strip()
+            
+            print(f"[可图扩图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
             task_data = self.submit_task(environment, api_key, payload)
@@ -341,7 +398,17 @@ class KolorsExpandImageNode:
             usage_info += f"- 模型: {model_name}\n"
             usage_info += f"- 任务ID: {task_id}\n"
             usage_info += f"- 提示词: {prompt.strip()}\n"
+            if negative_prompt and negative_prompt.strip():
+                usage_info += f"- 负面提示词: {negative_prompt.strip()}\n"
             usage_info += f"- 输入图像: {'Tensor (base64)' if image is not None else 'URL'}\n"
+            usage_info += f"- 响应格式: {response_format}\n"
+            usage_info += f"- 图像尺寸: {size}\n"
+            if seed != -1:
+                usage_info += f"- 随机种子: {seed}\n"
+            if guidance_scale != 7.5:
+                usage_info += f"- 引导强度: {guidance_scale}\n"
+            if steps != 20:
+                usage_info += f"- 推理步数: {steps}\n"
             usage_info += f"- 上扩展: {up_expansion_ratio:.1f} ({'不扩展' if up_expansion_ratio == 0 else f'+{up_expansion_ratio*100:.0f}%'})\n"
             usage_info += f"- 下扩展: {down_expansion_ratio:.1f} ({'不扩展' if down_expansion_ratio == 0 else f'+{down_expansion_ratio*100:.0f}%'})\n"
             usage_info += f"- 左扩展: {left_expansion_ratio:.1f} ({'不扩展' if left_expansion_ratio == 0 else f'+{left_expansion_ratio*100:.0f}%'})\n"

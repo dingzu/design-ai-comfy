@@ -78,8 +78,9 @@ class WanQingGPTImageEditNode:
 
     def __init__(self):
         self.environments = {
-            "staging": "https://llm-gateway-staging.corp.kuaishou.com",
-            "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
+            "staging": "https://llm-gateway-staging-sgp.corp.kuaishou.com",
+            "prod": "https://llm-gateway-prod-sgp.corp.kuaishou.com", 
+            "prod-old": "https://llm-gateway-prod.corp.kuaishou.com",
             "idc": "http://llm-gateway.internal"
         }
 
@@ -217,12 +218,27 @@ class WanQingGPTImageEditNode:
         """
         万擎 GPT 图像编辑
         """
+        # 用于调试的请求信息
+        debug_info = {
+            "url": "",
+            "headers": {},
+            "files_info": {},
+            "request_size": 0,
+            "error": None,
+            "response_status": None,
+            "response_content": ""
+        }
+        
         try:
             # 验证必需参数
             if not api_key or api_key.strip() == "":
+                debug_info["error"] = "API Key验证失败"
+                print(f"[万擎 GPT 编辑] 调试信息: {debug_info}")
                 raise ValueError("API Key不能为空，请联系 @于淼 获取万擎网关key")
             
             if not prompt or prompt.strip() == "":
+                debug_info["error"] = "编辑描述验证失败"
+                print(f"[万擎 GPT 编辑] 调试信息: {debug_info}")
                 raise ValueError("编辑描述不能为空")
 
             # 处理图像尺寸
@@ -278,6 +294,7 @@ class WanQingGPTImageEditNode:
             # 构建URL
             base_url = self.environments[environment]
             url = f"{base_url}/llm-serve/v1/images/edit"
+            debug_info["url"] = url
             
             # 构建multipart/form-data请求
             files = {
@@ -298,6 +315,32 @@ class WanQingGPTImageEditNode:
                 "x-api-key": api_key.strip(),
                 "User-Agent": "ComfyUI-WanQing-GPT-Edit/1.0"
             }
+            debug_info["headers"] = {k: v if k != "x-api-key" else "***隐藏***" for k, v in headers.items()}
+            
+            # 记录文件信息用于调试
+            debug_info["files_info"] = {
+                'image': {
+                    'filename': 'image.jpg',
+                    'size_kb': len(image_data) / 1024,
+                    'content_type': 'image/jpeg'
+                },
+                'prompt': prompt.strip(),
+                'model': 'gpt-image-1',
+                'n': str(image_count),
+                'size': final_image_size,
+                'quality': quality,
+                'output_format': output_format
+            }
+            
+            if mask_data is not None:
+                debug_info["files_info"]['mask'] = {
+                    'filename': 'mask.png',
+                    'size_kb': len(mask_data) / 1024,
+                    'content_type': 'image/png'
+                }
+            
+            total_request_size = len(image_data) + (len(mask_data) if mask_data is not None else 0)
+            debug_info["request_size"] = total_request_size / 1024  # KB
             
             print(f"[万擎 GPT 编辑] 发送请求到: {url}")
             print(f"[万擎 GPT 编辑] 请求参数:")
@@ -310,7 +353,7 @@ class WanQingGPTImageEditNode:
             print(f"  - 原始图像: {len(image_data) / 1024:.1f}KB")
             if mask_data is not None:
                 print(f"  - 遮罩图像: {len(mask_data) / 1024:.1f}KB")
-            print(f"  - 总请求大小: {(len(image_data) + (len(mask_data) if mask_data is not None else 0)) / 1024:.1f}KB")
+            print(f"  - 总请求大小: {total_request_size / 1024:.1f}KB")
             
             # 发送请求
             response = requests.post(
@@ -320,15 +363,29 @@ class WanQingGPTImageEditNode:
                 timeout=timeout
             )
             
+            debug_info["response_status"] = response.status_code
             print(f"[万擎 GPT 编辑] 响应状态码: {response.status_code}")
             
             # 解析响应
             try:
                 response_data = response.json()
+                debug_info["response_content"] = json.dumps(response_data, ensure_ascii=False, indent=2)
             except json.JSONDecodeError:
                 # 如果JSON解析失败，显示原始响应内容以便调试
                 response_text = response.text if response.text else "空响应"
+                debug_info["response_content"] = response_text
+                debug_info["error"] = f"JSON解析失败，状态码: {response.status_code}"
+                
+                print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+                print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+                print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+                print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+                print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+                print(f"[万擎 GPT 编辑] 响应状态码: {debug_info['response_status']}")
                 print(f"[万擎 GPT 编辑] 响应内容: {response_text}")
+                print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+                print(f"[万擎 GPT 编辑] ==================")
+                
                 if response.status_code == 404:
                     raise ValueError(f"API端点不存在 (404): {url}\n响应内容: {response_text}\n\n💡 建议: \n1. 检查API端点是否正确\n2. 确认图像编辑功能是否已在此环境中启用\n3. 联系 @于淼 确认正确的API端点")
                 else:
@@ -340,9 +397,21 @@ class WanQingGPTImageEditNode:
                 error_type = response_data.get('error', {}).get('type', 'unknown_error')
                 error_code = response_data.get('error', {}).get('code', 'unknown')
                 
+                debug_info["error"] = f"API错误 [{error_code}]: {error_msg} (类型: {error_type})"
+                
+                print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+                print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+                print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+                print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+                print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+                print(f"[万擎 GPT 编辑] 响应状态码: {debug_info['response_status']}")
+                print(f"[万擎 GPT 编辑] 响应内容: {debug_info['response_content']}")
+                print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+                print(f"[万擎 GPT 编辑] ==================")
+                
                 # 提供详细的错误信息和解决建议
                 if 'payload too large' in error_msg.lower() or response.status_code == 413:
-                    error_msg += f"\n\n💡 建议: 请求体过大（当前约{(len(image_data) + (len(mask_data) if mask_data is not None else 0)) / 1024:.1f}KB）"
+                    error_msg += f"\n\n💡 建议: 请求体过大（当前约{total_request_size / 1024:.1f}KB）"
                     error_msg += f"\n  - 尝试减小 max_file_size_mb 参数（当前: {max_file_size_mb}MB）"
                     error_msg += f"\n  - 或使用更小的输入图像"
                 elif 'invalid_mask_image_format' in error_code.lower():
@@ -367,6 +436,16 @@ class WanQingGPTImageEditNode:
             image_data_list = response_data.get('data', [])
             
             if not image_data_list:
+                debug_info["error"] = "响应中没有图像数据"
+                print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+                print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+                print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+                print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+                print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+                print(f"[万擎 GPT 编辑] 响应状态码: {debug_info['response_status']}")
+                print(f"[万擎 GPT 编辑] 响应内容: {debug_info['response_content']}")
+                print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+                print(f"[万擎 GPT 编辑] ==================")
                 raise ValueError("响应中没有图像数据")
             
             print(f"[万擎 GPT 编辑] 成功生成 {len(image_data_list)} 张图像")
@@ -395,6 +474,16 @@ class WanQingGPTImageEditNode:
                     print(f"[万擎 GPT 编辑] 警告: 跳过URL形式的图像，当前版本仅支持base64格式")
             
             if not images_tensor:
+                debug_info["error"] = "没有可用的图像数据（仅支持base64格式）"
+                print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+                print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+                print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+                print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+                print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+                print(f"[万擎 GPT 编辑] 响应状态码: {debug_info['response_status']}")
+                print(f"[万擎 GPT 编辑] 响应内容: {debug_info['response_content']}")
+                print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+                print(f"[万擎 GPT 编辑] ==================")
                 raise ValueError("没有可用的图像数据（仅支持base64格式）")
             
             # 合并所有图像
@@ -437,12 +526,48 @@ class WanQingGPTImageEditNode:
             return (result_images, response_json, usage_info)
             
         except requests.exceptions.Timeout:
+            debug_info["error"] = f"请求超时（{timeout}秒）"
+            print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+            print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+            print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+            print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+            print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+            print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+            print(f"[万擎 GPT 编辑] ==================")
             raise ValueError(f"请求超时（{timeout}秒）。图像编辑可能需要较长时间，建议增加超时时间。")
         except requests.exceptions.ConnectionError:
+            debug_info["error"] = "网络连接错误"
+            print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+            print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+            print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+            print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+            print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+            print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+            print(f"[万擎 GPT 编辑] ==================")
             raise ValueError(f"网络连接错误。请检查:\n1. 网络连接\n2. 万擎网关地址是否可访问\n3. 环境选择是否正确")
         except requests.exceptions.RequestException as e:
+            debug_info["error"] = f"请求异常: {str(e)}"
+            print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+            print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+            print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+            print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+            print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+            print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+            print(f"[万擎 GPT 编辑] ==================")
             raise ValueError(f"请求失败: {str(e)}")
         except Exception as e:
+            debug_info["error"] = f"未知异常: {str(e)}"
+            print(f"[万擎 GPT 编辑] === 详细调试信息 ===")
+            print(f"[万擎 GPT 编辑] 请求URL: {debug_info['url']}")
+            print(f"[万擎 GPT 编辑] 请求头: {debug_info['headers']}")
+            print(f"[万擎 GPT 编辑] 请求体大小: {debug_info['request_size']:.1f}KB")
+            print(f"[万擎 GPT 编辑] 文件信息: {json.dumps(debug_info['files_info'], ensure_ascii=False, indent=2)}")
+            if debug_info["response_status"]:
+                print(f"[万擎 GPT 编辑] 响应状态码: {debug_info['response_status']}")
+            if debug_info["response_content"]:
+                print(f"[万擎 GPT 编辑] 响应内容: {debug_info['response_content']}")
+            print(f"[万擎 GPT 编辑] 错误: {debug_info['error']}")
+            print(f"[万擎 GPT 编辑] ==================")
             raise ValueError(f"图像编辑失败: {str(e)}")
 
 # 节点映射

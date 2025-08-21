@@ -28,13 +28,17 @@ class ResizeImgAndMaskPro:
     RETURN_TYPES = ("IMAGE", "MASK", "INT", "INT")
     RETURN_NAMES = ("image", "mask", "width", "height")
     FUNCTION = "resize_with_mask"
-    CATEGORY = "✨✨✨design-ai"
+    CATEGORY = "✨✨✨design-ai/img"
 
     def resize_with_mask(self, image, mask, width, height, resize_mode, multiple_of, pad_color=0):
         # Convert torch tensors to PIL Images
         i = 255. * image.cpu().numpy().squeeze()
         img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
         mask_img = Image.fromarray((mask.cpu().numpy().squeeze() * 255).astype(np.uint8))
+        
+        # Ensure mask size matches image size
+        if mask_img.size != img.size:
+            mask_img = mask_img.resize(img.size, Image.LANCZOS)
 
         # Get original dimensions
         orig_width, orig_height = img.size
