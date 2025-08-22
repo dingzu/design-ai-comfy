@@ -293,14 +293,14 @@ class WanQingGPTImageEditNode:
 
             # 构建URL
             base_url = self.environments[environment]
-            url = f"{base_url}/llm-serve/v1/images/edit"
+            url = f"{base_url}/llm-serve/gpt-image-1-edits/v1/images/edits"
             debug_info["url"] = url
             
-            # 构建multipart/form-data请求
+            # 构建multipart/form-data请求 (model字段放第一位 - 网关已知问题)
             files = {
-                'image': ('image.jpg', image_data, 'image/jpeg'),
-                'prompt': (None, prompt.strip()),
                 'model': (None, 'gpt-image-1'),
+                'image[]': ('image.jpg', image_data, 'image/jpeg'),
+                'prompt': (None, prompt.strip()),
                 'n': (None, str(image_count)),
                 'size': (None, final_image_size),
                 'quality': (None, quality),
@@ -310,22 +310,22 @@ class WanQingGPTImageEditNode:
             if mask_data is not None:
                 files['mask'] = ('mask.png', mask_data, 'image/png')
             
-            # 设置请求头
+            # 设置请求头 (不手动设置Content-Type，让requests自动处理multipart/form-data)
             headers = {
                 "x-api-key": api_key.strip(),
                 "User-Agent": "ComfyUI-WanQing-GPT-Edit/1.0"
             }
             debug_info["headers"] = {k: v if k != "x-api-key" else "***隐藏***" for k, v in headers.items()}
             
-            # 记录文件信息用于调试
+            # 记录文件信息用于调试 (按实际请求顺序排列)
             debug_info["files_info"] = {
-                'image': {
+                'model': 'gpt-image-1',
+                'image[]': {
                     'filename': 'image.jpg',
                     'size_kb': len(image_data) / 1024,
                     'content_type': 'image/jpeg'
                 },
                 'prompt': prompt.strip(),
-                'model': 'gpt-image-1',
                 'n': str(image_count),
                 'size': final_image_size,
                 'quality': quality,
@@ -343,9 +343,9 @@ class WanQingGPTImageEditNode:
             debug_info["request_size"] = total_request_size / 1024  # KB
             
             print(f"[万擎 GPT 编辑] 发送请求到: {url}")
-            print(f"[万擎 GPT 编辑] 请求参数:")
-            print(f"  - prompt: {prompt.strip()}")
+            print(f"[万擎 GPT 编辑] 请求参数 (model字段已置于首位):")
             print(f"  - model: gpt-image-1")
+            print(f"  - prompt: {prompt.strip()}")
             print(f"  - n: {image_count}")
             print(f"  - size: {final_image_size}")
             print(f"  - quality: {quality}")
