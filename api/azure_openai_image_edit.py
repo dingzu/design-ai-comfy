@@ -45,8 +45,8 @@ class AzureOpenAIImageEditNode:
                     "step": 1,
                     "tooltip": "生成图像数量"
                 }),
-                "image_size": (["1024x1024", "1024x1536", "1536x1024"], {
-                    "default": "1024x1024",
+                "image_size": (["1024x1024", "1024x1536", "1536x1024", "auto"], {
+                    "default": "auto",
                     "tooltip": "输出图像尺寸"
                 }),
                 "quality": (["low", "medium", "high"], {
