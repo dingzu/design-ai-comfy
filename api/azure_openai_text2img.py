@@ -46,6 +46,17 @@ class AzureOpenAIText2ImgNode:
                     "default": "auto",
                     "tooltip": "输出图像尺寸"
                 }),
+                "quality": (["high", "medium", "low"], {
+                    "default": "high",
+                    "tooltip": "图像质量：high（高质量，默认）、medium（中等质量）、low（低质量，生成更快）"
+                }),
+                "output_compression": ("INT", {
+                    "default": 100,
+                    "min": 0,
+                    "max": 100,
+                    "step": 1,
+                    "tooltip": "输出压缩级别：0（无压缩）到100（最大压缩），默认100"
+                }),
                 "timeout": ("FLOAT", {
                     "default": 120.0,
                     "min": 30.0,
@@ -65,7 +76,7 @@ class AzureOpenAIText2ImgNode:
         pass
 
     def generate_image(self, api_key, endpoint, deployment_name, api_version, prompt, 
-                      image_count, image_size, timeout):
+                      image_count, image_size, quality, output_compression, timeout):
         """
         Azure OpenAI 文生图
         """
@@ -107,6 +118,8 @@ class AzureOpenAIText2ImgNode:
                 base_endpoint = f"https://{base_endpoint}"
             
             print(f"[Azure OpenAI 文生图] 使用尺寸: {image_size}")
+            print(f"[Azure OpenAI 文生图] 使用质量: {quality}")
+            print(f"[Azure OpenAI 文生图] 使用压缩级别: {output_compression}")
 
             # 构建Azure OpenAI API URL
             url = f"{base_endpoint}/openai/deployments/{deployment_name}/images/generations?api-version={api_version}"
@@ -116,7 +129,9 @@ class AzureOpenAIText2ImgNode:
             payload = {
                 "prompt": prompt.strip(),
                 "n": image_count,
-                "size": image_size
+                "size": image_size,
+                "quality": quality,
+                "output_compression": output_compression
             }
             debug_info["payload"] = payload
             
@@ -135,6 +150,8 @@ class AzureOpenAIText2ImgNode:
             print(f"  - prompt: {prompt.strip()}")
             print(f"  - n: {image_count}")
             print(f"  - size: {image_size}")
+            print(f"  - quality: {quality}")
+            print(f"  - output_compression: {output_compression}")
             
             # 发送请求
             response = requests.post(
@@ -290,6 +307,8 @@ class AzureOpenAIText2ImgNode:
             usage_info += f"- API版本: {api_version}\n"
             usage_info += f"- 生成图像数量: {len(images_tensor)}\n"
             usage_info += f"- 图像尺寸: {image_size}\n"
+            usage_info += f"- 图像质量: {quality}\n"
+            usage_info += f"- 压缩级别: {output_compression}\n"
             usage_info += f"- 提示词: {prompt.strip()}"
             
             # 返回完整的响应JSON
