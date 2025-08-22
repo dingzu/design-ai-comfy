@@ -71,6 +71,8 @@ from .api.jimeng_image_to_image import JiMengImageToImageNode
 from .api.kolors_text_to_image import KolorsTextToImageNode
 from .api.kolors_image_to_image import KolorsImageToImageNode
 from .api.kolors_expand_image import KolorsExpandImageNode
+from .api.azure_openai_image_edit import AzureOpenAIImageEditNode
+from .api.azure_openai_text2img import AzureOpenAIText2ImgNode
 from .img.image_overlay import ImageOverlay
 
 NODE_CLASS_MAPPINGS = {
@@ -150,6 +152,8 @@ NODE_CLASS_MAPPINGS = {
     "KolorsTextToImage": KolorsTextToImageNode,
     "KolorsImageToImage": KolorsImageToImageNode,
     "KolorsExpandImage": KolorsExpandImageNode,
+    "AzureOpenAIImageEdit": AzureOpenAIImageEditNode,
+    "AzureOpenAIText2Img": AzureOpenAIText2ImgNode,
     "ImageOverlay": ImageOverlay
 }
 
@@ -230,6 +234,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KolorsTextToImage": "可图文生图",
     "KolorsImageToImage": "可图图生图",
     "KolorsExpandImage": "可图扩图",
+    "AzureOpenAIImageEdit": "Azure OpenAI 图像编辑",
+    "AzureOpenAIText2Img": "Azure OpenAI 文生图",
     "ImageOverlay": "Image Overlay"
 }
 
