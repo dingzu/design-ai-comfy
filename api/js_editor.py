@@ -50,8 +50,8 @@ class JsEditorNode:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("image_big", "success", "message", "task_id", "image_url_big", "extracted_json", "response_data")
+    RETURN_TYPES = ("IMAGE", "MASK", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("image_big", "mask_big", "success", "message", "task_id", "image_url_big", "extracted_json", "response_data")
     FUNCTION = "run_js_editor"
     CATEGORY = "✨✨✨design-ai/api"
 
@@ -113,11 +113,15 @@ class JsEditorNode:
                             image_url_big = item.get("image_url_big", "")
                             
                             # 只下载大尺寸图片
-                            image_big, success_big, msg_big = self._download_image(image_url_big, timeout, use_proxy) if image_url_big else (None, False, "没有big尺寸URL")
+                            if image_url_big:
+                                image_big, mask_big, success_big, msg_big = self._download_image(image_url_big, timeout, use_proxy)
+                            else:
+                                image_big, mask_big, success_big, msg_big = (None, None, False, "没有big尺寸URL")
                             
-                            # 如果下载失败，使用空白图片
+                            # 如果下载失败，使用空白图片和mask
                             if not success_big:
                                 image_big = self._create_blank_image()
+                                mask_big = self._create_blank_mask()
                             
                             if success_big:
                                 message_parts = [f"JS编辑器运行成功 - Big: ✓"]
@@ -129,34 +133,41 @@ class JsEditorNode:
                             else:
                                 message = f"图片下载失败 - Big: {msg_big}"
                             
-                            return (image_big, success_big, message, task_id, image_url_big, extracted_json, response_text)
+                            return (image_big, mask_big, success_big, message, task_id, image_url_big, extracted_json, response_text)
                         else:
                             blank_image = self._create_blank_image()
-                            return (blank_image, False, "API返回数据中没有图片资源", task_id, "", extracted_json, response_text)
+                            blank_mask = self._create_blank_mask()
+                            return (blank_image, blank_mask, False, "API返回数据中没有图片资源", task_id, "", extracted_json, response_text)
                     else:
                         error_msg = response_json.get("errorMsg", "未知错误")
                         blank_image = self._create_blank_image()
-                        return (blank_image, False, f"API返回错误: {error_msg}", "", "", "", response_text)
+                        blank_mask = self._create_blank_mask()
+                        return (blank_image, blank_mask, False, f"API返回错误: {error_msg}", "", "", "", response_text)
                         
                 except json.JSONDecodeError:
                     blank_image = self._create_blank_image()
-                    return (blank_image, False, f"API响应格式错误: {response_text}", "", "", "", response_text)
+                    blank_mask = self._create_blank_mask()
+                    return (blank_image, blank_mask, False, f"API响应格式错误: {response_text}", "", "", "", response_text)
             else:
                 blank_image = self._create_blank_image()
-                return (blank_image, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", response_text)
+                blank_mask = self._create_blank_mask()
+                return (blank_image, blank_mask, False, f"HTTP错误 {response.status_code}: {response_text}", "", "", "", response_text)
                 
         except requests.Timeout:
             blank_image = self._create_blank_image()
-            return (blank_image, False, f"请求超时({timeout}秒)", "", "", "", "")
+            blank_mask = self._create_blank_mask()
+            return (blank_image, blank_mask, False, f"请求超时({timeout}秒)", "", "", "", "")
         except requests.RequestException as e:
             blank_image = self._create_blank_image()
-            return (blank_image, False, f"网络请求错误: {str(e)}", "", "", "", "")
+            blank_mask = self._create_blank_mask()
+            return (blank_image, blank_mask, False, f"网络请求错误: {str(e)}", "", "", "", "")
         except Exception as e:
             blank_image = self._create_blank_image()
-            return (blank_image, False, f"处理过程中出现错误: {str(e)}", "", "", "", "")
+            blank_mask = self._create_blank_mask()
+            return (blank_image, blank_mask, False, f"处理过程中出现错误: {str(e)}", "", "", "", "")
 
     def _download_image(self, image_url, timeout, use_proxy=False):
-        """下载图片并转换为tensor"""
+        """下载图片并转换为tensor，分别返回RGB和Mask"""
         try:
             # 配置代理
             request_kwargs = {"timeout": timeout}
@@ -168,16 +179,45 @@ class JsEditorNode:
                 # 从响应内容加载图片
                 image = Image.open(BytesIO(response.content))
                 
-                # 转换为RGB模式
-                if image.mode in ('RGBA', 'LA'):
-                    background = Image.new('RGB', image.size, (255, 255, 255))
-                    background.paste(image, mask=image.split()[-1])
-                    image = background
-                elif image.mode != 'RGB':
-                    image = image.convert('RGB')
+                # 处理alpha通道和RGB通道
+                has_alpha = image.mode in ('RGBA', 'LA') or 'transparency' in image.info
                 
-                # 转换为numpy数组并归一化
-                np_image = np.array(image).astype(np.float32) / 255.0
+                # 提取alpha通道作为mask
+                mask_tensor = None
+                if has_alpha:
+                    if image.mode == 'RGBA':
+                        alpha_channel = image.split()[-1]  # 获取alpha通道
+                    elif image.mode == 'LA':
+                        alpha_channel = image.split()[-1]  # 获取alpha通道
+                    else:
+                        # 处理有transparency信息但不是RGBA/LA模式的图片
+                        image = image.convert('RGBA')
+                        alpha_channel = image.split()[-1]
+                    
+                    # 将alpha通道转换为mask tensor
+                    mask_array = np.array(alpha_channel).astype(np.float32) / 255.0
+                    # ComfyUI中mask语义相反：透明区域(alpha=0)应该是白色(mask=1)，不透明区域(alpha=1)应该是黑色(mask=0)
+                    mask_array = 1.0 - mask_array
+                    # 添加batch维度 [height, width] -> [1, height, width]
+                    mask_array = mask_array[None, ...]
+                    mask_tensor = torch.from_numpy(mask_array)
+                
+                # 处理RGB通道
+                if image.mode in ('RGBA', 'LA'):
+                    # 创建白色背景并合成
+                    background = Image.new('RGB', image.size, (255, 255, 255))
+                    if has_alpha:
+                        background.paste(image, mask=image.split()[-1])
+                    else:
+                        background.paste(image)
+                    rgb_image = background
+                elif image.mode != 'RGB':
+                    rgb_image = image.convert('RGB')
+                else:
+                    rgb_image = image
+                
+                # 转换RGB为numpy数组并归一化
+                np_image = np.array(rgb_image).astype(np.float32) / 255.0
                 
                 # 确保图像是RGB格式，并添加batch维度
                 if len(np_image.shape) == 2:  # 如果是灰度图像
@@ -189,14 +229,26 @@ class JsEditorNode:
                 # 将numpy数组转换为PyTorch tensor，保持[B,H,W,C]格式
                 image_tensor = torch.from_numpy(np_image)
                 
-                return (image_tensor, True, "图片下载成功")
+                # 如果没有alpha通道，创建全黑的mask（ComfyUI语义：黑色=不处理，白色=处理）
+                # 对于没有透明度的图片，默认认为是完全不透明，所以mask为黑色（不处理背景）
+                if mask_tensor is None:
+                    mask_array = np.zeros((1, image_tensor.shape[1], image_tensor.shape[2]), dtype=np.float32)
+                    mask_tensor = torch.from_numpy(mask_array)
+                
+                return (image_tensor, mask_tensor, True, "图片下载成功")
             else:
-                return (None, False, f"HTTP错误 {response.status_code}")
+                return (None, None, False, f"HTTP错误 {response.status_code}")
         except Exception as e:
-            return (None, False, f"下载错误: {str(e)}")
+            return (None, None, False, f"下载错误: {str(e)}")
 
     def _create_blank_image(self, width=512, height=512):
         """创建空白图片tensor"""
         # 创建白色背景图片
         blank_array = np.ones((1, height, width, 3), dtype=np.float32)
         return torch.from_numpy(blank_array)
+    
+    def _create_blank_mask(self, width=512, height=512):
+        """创建空白mask tensor"""
+        # 创建全黑的mask（ComfyUI语义：黑色=不处理，对应完全不透明的图片）
+        blank_mask_array = np.zeros((1, height, width), dtype=np.float32)
+        return torch.from_numpy(blank_mask_array)

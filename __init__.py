@@ -74,6 +74,7 @@ from .api.kolors_expand_image import KolorsExpandImageNode
 from .api.azure_openai_image_edit import AzureOpenAIImageEditNode
 from .api.azure_openai_text2img import AzureOpenAIText2ImgNode
 from .img.image_overlay import ImageOverlay
+from .img.XingYueSize import XingYueSize
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -154,7 +155,8 @@ NODE_CLASS_MAPPINGS = {
     "KolorsExpandImage": KolorsExpandImageNode,
     "AzureOpenAIImageEdit": AzureOpenAIImageEditNode,
     "AzureOpenAIText2Img": AzureOpenAIText2ImgNode,
-    "ImageOverlay": ImageOverlay
+    "ImageOverlay": ImageOverlay,
+    "XingYueSize": XingYueSize
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -236,8 +238,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KolorsExpandImage": "可图扩图",
     "AzureOpenAIImageEdit": "Azure OpenAI 图像编辑",
     "AzureOpenAIText2Img": "Azure OpenAI 文生图",
-    "ImageOverlay": "Image Overlay"
+    "ImageOverlay": "Image Overlay",
+    "XingYueSize": "星月尺寸"
 }
+
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
 
