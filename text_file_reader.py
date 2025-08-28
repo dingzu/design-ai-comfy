@@ -87,4 +87,48 @@ class GPTConfigReader:
             return (token, api_url)
             
         except Exception as e:
-            return (f"Error reading config: {str(e)}", f"Error reading config: {str(e)}") 
+            return (f"Error reading config: {str(e)}", f"Error reading config: {str(e)}")
+
+class WanqingConfigReader:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "file_path": ("STRING", {"default": "/home/work/ComfyUI/models/design_resource/WANQINGConfig.txt"}),
+                "token_key": ("STRING", {"default": "TOKEN"}),
+            },
+        }
+
+    RETURN_NAMES = ("token",)
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "read_wanqing_config"
+    CATEGORY = "✨✨✨design-ai/io"
+
+    def read_wanqing_config(self, file_path, token_key):
+        try:
+            if not os.path.exists(file_path):
+                return (f"Error: Config file not found at {file_path}",)
+            
+            token = ""
+            
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.readlines()
+            
+            for line in content:
+                line = line.strip()
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    
+                    if key == token_key:
+                        token = value
+                        break
+            
+            if not token:
+                token = f"Token not found with key '{token_key}'"
+                
+            return (token,)
+            
+        except Exception as e:
+            return (f"Error reading config: {str(e)}",) 

@@ -34,7 +34,7 @@ from .bbox_sorter import BboxSorter
 from .bbox_container import BboxContainer
 from .bbox_measurement import BboxMeasurement
 from .regex_processor import RegexProcessor
-from .text_file_reader import TextFileReader, GPTConfigReader
+from .text_file_reader import TextFileReader, GPTConfigReader, WanqingConfigReader
 from .api.load_image_from_url import LoadImageFromURL
 from .logic.group_random_selector import GroupRandomSelector
 from .api.openai_text_gen import OpenAITextGenNode
@@ -66,6 +66,8 @@ from .api.wanqing_bbox_detector import WanqingBboxDetectorNode
 from .api.wanqing_flexible_api import WanqingFlexibleAPINode
 from .api.wanqing_gpt_image_generation import WanQingGPTImageGenerationNode
 from .api.wanqing_gpt_image_edit import WanQingGPTImageEditNode
+from .api.qwen_image_text2img import QwenImageText2ImgNode
+from .api.qwen_image_edit import QwenImageEditNode
 from .api.jimeng_text_to_image import JiMengTextToImageNode
 from .api.jimeng_image_to_image import JiMengImageToImageNode
 from .api.kolors_text_to_image import KolorsTextToImageNode
@@ -115,6 +117,7 @@ NODE_CLASS_MAPPINGS = {
     "RegexProcessor":RegexProcessor,
     "TextFileReader": TextFileReader,
     "GPTConfigReader": GPTConfigReader,
+    "WanqingConfigReader": WanqingConfigReader,
     "LoadImageFromURL":LoadImageFromURL,
     "GroupRandomSelector":GroupRandomSelector,
     "OpenAITextGenNode": OpenAITextGenNode,
@@ -148,6 +151,8 @@ NODE_CLASS_MAPPINGS = {
     "WanqingFlexibleAPINode": WanqingFlexibleAPINode,
     "WanQingGPTImageGeneration": WanQingGPTImageGenerationNode,
     "WanQingGPTImageEdit": WanQingGPTImageEditNode,
+    "QwenImageText2Img": QwenImageText2ImgNode,
+    "QwenImageEdit": QwenImageEditNode,
     "JiMengTextToImage": JiMengTextToImageNode,
     "JiMengImageToImage": JiMengImageToImageNode,
     "KolorsTextToImage": KolorsTextToImageNode,
@@ -231,6 +236,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "WanqingFlexibleAPINode": "wanqing_flexible_api",
     "WanQingGPTImageGeneration": "万擎 GPT 图像生成",
     "WanQingGPTImageEdit": "万擎 GPT 图像编辑",
+    "QwenImageText2Img": "Qwen-Image 文本生成图像",
+    "QwenImageEdit": "Qwen-Image 图像编辑",
     "JiMengTextToImage": "即梦文生图",
     "JiMengImageToImage": "即梦图生图",
     "KolorsTextToImage": "可图文生图",
