@@ -62,6 +62,10 @@ class WanQingGPTImageEditNode:
                     "max": 300.0,
                     "step": 10.0,
                     "tooltip": "请求超时时间（秒）"
+                }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否使用代理服务器"
                 })
             },
             "optional": {
@@ -214,7 +218,7 @@ class WanQingGPTImageEditNode:
         return buffer.getvalue(), final_size
 
     def edit_image(self, environment, api_key, image, prompt, 
-                   image_count, image_size, quality, output_format, max_file_size_mb, timeout, mask=None):
+                   image_count, image_size, quality, output_format, max_file_size_mb, timeout, use_proxy, mask=None):
         """
         万擎 GPT 图像编辑
         """
@@ -355,13 +359,17 @@ class WanQingGPTImageEditNode:
                 print(f"  - 遮罩图像: {len(mask_data) / 1024:.1f}KB")
             print(f"  - 总请求大小: {total_request_size / 1024:.1f}KB")
             
+            # 配置代理
+            request_kwargs = {
+                "headers": headers,
+                "files": files,
+                "timeout": timeout
+            }
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
             # 发送请求
-            response = requests.post(
-                url,
-                headers=headers,
-                files=files,
-                timeout=timeout
-            )
+            response = requests.post(url, **request_kwargs)
             
             debug_info["response_status"] = response.status_code
             print(f"[万擎 GPT 编辑] 响应状态码: {response.status_code}")

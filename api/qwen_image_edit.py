@@ -62,6 +62,10 @@ class QwenImageEditNode:
                     "max": 30.0,
                     "step": 1.0,
                     "tooltip": "任务状态查询间隔（秒）"
+                }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否使用代理服务器"
                 })
             },
             "optional": {
@@ -84,7 +88,7 @@ class QwenImageEditNode:
         }
 
     def edit_image(self, environment, api_key, image, prompt, edit_type, 
-                   image_size, image_count, watermark, timeout, poll_interval, mask=None):
+                   image_size, image_count, watermark, timeout, poll_interval, use_proxy, mask=None):
         """
         Qwen-Image 图像编辑（异步API）
         """
@@ -144,13 +148,17 @@ class QwenImageEditNode:
             print(f"[Qwen-Image Edit] 图像尺寸: {image_size}")
             print(f"[Qwen-Image Edit] 是否有蒙版: {'是' if mask_base64 else '否'}")
             
+            # 配置代理
+            submit_kwargs = {
+                "headers": headers,
+                "json": payload,
+                "timeout": 30  # 提交任务的超时时间较短
+            }
+            if use_proxy:
+                submit_kwargs["proxies"] = {"http": None, "https": None}
+            
             # 1. 提交任务
-            response = requests.post(
-                submit_url,
-                headers=headers,
-                json=payload,
-                timeout=30  # 提交任务的超时时间较短
-            )
+            response = requests.post(submit_url, **submit_kwargs)
             
             print(f"[Qwen-Image Edit] 任务提交响应状态码: {response.status_code}")
             
@@ -173,13 +181,13 @@ class QwenImageEditNode:
             print(f"[Qwen-Image Edit] 任务提交成功，任务ID: {task_id}")
             
             # 2. 轮询任务状态
-            result = self._poll_task_status(base_url, api_key, task_id, timeout, poll_interval)
+            result = self._poll_task_status(base_url, api_key, task_id, timeout, poll_interval, use_proxy)
             
             if not result:
                 raise ValueError("任务执行失败或超时")
             
             # 3. 处理结果
-            return self._process_result(result, task_id, edit_type)
+            return self._process_result(result, task_id, edit_type, use_proxy)
             
         except requests.exceptions.Timeout:
             raise ValueError(f"请求超时（{timeout}秒）。Qwen-Image编辑可能需要较长时间，建议增加超时时间。")
@@ -242,7 +250,7 @@ class QwenImageEditNode:
         except Exception as e:
             raise ValueError(f"蒙版转换失败: {str(e)}")
 
-    def _poll_task_status(self, base_url, api_key, task_id, timeout, poll_interval):
+    def _poll_task_status(self, base_url, api_key, task_id, timeout, poll_interval, use_proxy):
         """轮询任务状态"""
         query_url = f"{base_url}/ai-serve/v1/qwen-image-tasks/{task_id}"
         headers = {"x-api-key": api_key}
@@ -259,7 +267,15 @@ class QwenImageEditNode:
                     print(f"[Qwen-Image Edit] 任务查询超时（{elapsed:.1f}s）")
                     break
                 
-                response = requests.get(query_url, headers=headers, timeout=30)
+                # 配置代理
+                poll_kwargs = {
+                    "headers": headers,
+                    "timeout": 30
+                }
+                if use_proxy:
+                    poll_kwargs["proxies"] = {"http": None, "https": None}
+                
+                response = requests.get(query_url, **poll_kwargs)
                 
                 if response.status_code != 200:
                     print(f"[Qwen-Image Edit] 查询失败 {response.status_code}: {response.text}")
@@ -292,7 +308,7 @@ class QwenImageEditNode:
         
         return None
 
-    def _process_result(self, result, task_id, edit_type):
+    def _process_result(self, result, task_id, edit_type, use_proxy):
         """处理编辑结果"""
         try:
             # 提取结果数据
@@ -316,7 +332,12 @@ class QwenImageEditNode:
                 # 下载图像
                 try:
                     print(f"[Qwen-Image Edit] 下载图像 {idx + 1}: {image_url}")
-                    img_response = requests.get(image_url, timeout=60)
+                    # 配置代理
+                    download_kwargs = {"timeout": 60}
+                    if use_proxy:
+                        download_kwargs["proxies"] = {"http": None, "https": None}
+                    
+                    img_response = requests.get(image_url, **download_kwargs)
                     if img_response.status_code == 200:
                         image = Image.open(io.BytesIO(img_response.content))
                         

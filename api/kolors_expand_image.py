@@ -72,6 +72,10 @@ class KolorsExpandImageNode:
                     "max": 30.0,
                     "step": 1.0,
                     "tooltip": "轮询间隔（秒）"
+                }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否使用代理服务器"
                 })
             },
             "optional": {
@@ -160,7 +164,7 @@ class KolorsExpandImageNode:
         base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return base64_string
 
-    def submit_task(self, environment, api_key, payload):
+    def submit_task(self, environment, api_key, payload, use_proxy):
         """提交扩展任务"""
         base_url = self.environments[environment]
         url = f"{base_url}/ai-serve/v1/ktu/images/editing/expand"
@@ -174,7 +178,16 @@ class KolorsExpandImageNode:
         print(f"[可图扩图] 提交任务到: {url}")
         print(f"[可图扩图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
         
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        # 配置代理
+        request_kwargs = {
+            "headers": headers,
+            "json": payload,
+            "timeout": 30
+        }
+        if use_proxy:
+            request_kwargs["proxies"] = {"http": None, "https": None}
+        
+        response = requests.post(url, **request_kwargs)
         
         print(f"[可图扩图] 响应状态码: {response.status_code}")
         print(f"[可图扩图] 响应头: {dict(response.headers)}")
@@ -201,7 +214,7 @@ class KolorsExpandImageNode:
         
         return response_data.get('data', {})
 
-    def poll_task_result(self, environment, api_key, task_id, timeout, poll_interval):
+    def poll_task_result(self, environment, api_key, task_id, timeout, poll_interval, use_proxy):
         """轮询任务结果"""
         base_url = self.environments[environment]
         url = f"{base_url}/ai-serve/v1/ktu/images/editing/expand/{task_id}"
@@ -219,7 +232,15 @@ class KolorsExpandImageNode:
             print(f"[可图扩图] 轮询任务状态: {task_id}")
             
             try:
-                response = requests.get(url, headers=headers, timeout=30)
+                # 配置代理
+                poll_kwargs = {
+                    "headers": headers,
+                    "timeout": 30
+                }
+                if use_proxy:
+                    poll_kwargs["proxies"] = {"http": None, "https": None}
+                
+                response = requests.get(url, **poll_kwargs)
                 response_data = response.json()
                 
                 print(f"[可图扩图] 轮询响应状态码: {response.status_code}")
@@ -260,7 +281,7 @@ class KolorsExpandImageNode:
 
     def expand_image(self, environment, api_key, prompt, model_name, 
                     up_expansion_ratio, down_expansion_ratio, left_expansion_ratio, right_expansion_ratio,
-                    timeout, poll_interval, image=None, image_url=None, response_format="url", 
+                    timeout, poll_interval, use_proxy, image=None, image_url=None, response_format="url", 
                     size="adaptive", seed=-1, guidance_scale=7.5, steps=20, negative_prompt="", num_images=1):
         """
         可图扩图
@@ -322,7 +343,7 @@ class KolorsExpandImageNode:
             print(f"[可图扩图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
-            task_data = self.submit_task(environment, api_key, payload)
+            task_data = self.submit_task(environment, api_key, payload, use_proxy)
             task_id = task_data.get('task_id')
             
             if not task_id:
@@ -331,7 +352,7 @@ class KolorsExpandImageNode:
             print(f"[可图扩图] 任务已提交，task_id: {task_id}")
             
             # 轮询任务结果
-            result_data = self.poll_task_result(environment, api_key, task_id, timeout, poll_interval)
+            result_data = self.poll_task_result(environment, api_key, task_id, timeout, poll_interval, use_proxy)
             
             # 处理生成的图像
             data = result_data.get('data', {})
@@ -368,7 +389,12 @@ class KolorsExpandImageNode:
                 print(f"[可图扩图] 下载图像 {idx + 1}: {image_url}")
                 
                 try:
-                    img_response = requests.get(image_url, timeout=60)
+                    # 配置代理
+                    download_kwargs = {"timeout": 60}
+                    if use_proxy:
+                        download_kwargs["proxies"] = {"http": None, "https": None}
+                    
+                    img_response = requests.get(image_url, **download_kwargs)
                     img_response.raise_for_status()
                     result_image = Image.open(io.BytesIO(img_response.content))
                     

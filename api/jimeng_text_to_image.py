@@ -59,6 +59,10 @@ class JiMengTextToImageNode:
                     "max": 300.0,
                     "step": 10.0,
                     "tooltip": "请求超时时间（秒）"
+                }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否使用代理服务器"
                 })
             }
         }
@@ -76,7 +80,7 @@ class JiMengTextToImageNode:
         }
 
     def generate_image(self, environment, api_key, prompt, response_format, size, 
-                      seed, guidance_scale, watermark, timeout):
+                      seed, guidance_scale, watermark, timeout, use_proxy):
         """
         即梦文生图
         """
@@ -113,13 +117,17 @@ class JiMengTextToImageNode:
             print(f"[即梦文生图] 发送请求到: {url}")
             print(f"[即梦文生图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
+            # 配置代理
+            request_kwargs = {
+                "headers": headers,
+                "json": payload,
+                "timeout": timeout
+            }
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
             # 发送请求
-            response = requests.post(
-                url,
-                headers=headers,
-                json=payload,
-                timeout=timeout
-            )
+            response = requests.post(url, **request_kwargs)
             
             print(f"[即梦文生图] 响应状态码: {response.status_code}")
             
@@ -186,7 +194,12 @@ class JiMengTextToImageNode:
                     if response_format == "url":
                         # 如果用户选择了URL格式，下载图像
                         try:
-                            img_response = requests.get(image_url, timeout=30)
+                            # 配置代理
+                            download_kwargs = {"timeout": 30}
+                            if use_proxy:
+                                download_kwargs["proxies"] = {"http": None, "https": None}
+                            
+                            img_response = requests.get(image_url, **download_kwargs)
                             img_response.raise_for_status()
                             image = Image.open(io.BytesIO(img_response.content))
                             
