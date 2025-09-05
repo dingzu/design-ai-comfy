@@ -75,6 +75,7 @@ from .api.kolors_image_to_image import KolorsImageToImageNode
 from .api.kolors_expand_image import KolorsExpandImageNode
 from .api.azure_openai_image_edit import AzureOpenAIImageEditNode
 from .api.azure_openai_text2img import AzureOpenAIText2ImgNode
+from .api.ketu_text_to_image import KetuTextToImageNode
 from .img.image_overlay import ImageOverlay
 from .img.XingYueSize import XingYueSize
 
@@ -160,6 +161,7 @@ NODE_CLASS_MAPPINGS = {
     "KolorsExpandImage": KolorsExpandImageNode,
     "AzureOpenAIImageEdit": AzureOpenAIImageEditNode,
     "AzureOpenAIText2Img": AzureOpenAIText2ImgNode,
+    "KetuTextToImage": KetuTextToImageNode,
     "ImageOverlay": ImageOverlay,
     "XingYueSize": XingYueSize
 }
@@ -245,6 +247,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KolorsExpandImage": "可图扩图",
     "AzureOpenAIImageEdit": "Azure OpenAI 图像编辑",
     "AzureOpenAIText2Img": "Azure OpenAI 文生图",
+    "KetuTextToImage": "可图文生图 (Ketu T2I)",
     "ImageOverlay": "Image Overlay",
     "XingYueSize": "星月尺寸"
 }
