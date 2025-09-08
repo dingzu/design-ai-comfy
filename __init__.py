@@ -78,6 +78,7 @@ from .api.azure_openai_text2img import AzureOpenAIText2ImgNode
 from .api.ketu_text_to_image import KetuTextToImageNode
 from .img.image_overlay import ImageOverlay
 from .img.XingYueSize import XingYueSize
+from .api.gemini_2_5_flash_image_preview import Gemini25FlashImagePreviewNode
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -163,7 +164,8 @@ NODE_CLASS_MAPPINGS = {
     "AzureOpenAIText2Img": AzureOpenAIText2ImgNode,
     "KetuTextToImage": KetuTextToImageNode,
     "ImageOverlay": ImageOverlay,
-    "XingYueSize": XingYueSize
+    "XingYueSize": XingYueSize,
+    "Gemini25FlashImagePreview": Gemini25FlashImagePreviewNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -249,7 +251,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AzureOpenAIText2Img": "Azure OpenAI 文生图",
     "KetuTextToImage": "可图文生图 (Ketu T2I)",
     "ImageOverlay": "Image Overlay",
-    "XingYueSize": "星月尺寸"
+    "XingYueSize": "星月尺寸",
+    "Gemini25FlashImagePreview": "Gemini-2.5-Flash 图像预览"
 }
 
 

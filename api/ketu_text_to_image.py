@@ -55,6 +55,10 @@ class KetuTextToImageNode:
                     "max": 30,
                     "step": 1,
                     "tooltip": "轮询间隔（秒）"
+                }),
+                "use_proxy": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "是否使用代理服务器"
                 })
             },
             "optional": {
@@ -176,7 +180,7 @@ class KetuTextToImageNode:
         
         return True, ""
 
-    def submit_task(self, jwt_token, payload):
+    def submit_task(self, jwt_token, payload, use_proxy=True):
         """提交生成任务"""
         headers = {
             "Content-Type": "application/json",
@@ -184,8 +188,17 @@ class KetuTextToImageNode:
             "User-Agent": "ComfyUI-Ketu/1.0"
         }
         
+        # 配置代理
+        request_kwargs = {
+            "headers": headers,
+            "json": payload,
+            "timeout": 30
+        }
+        if use_proxy:
+            request_kwargs["proxies"] = {"http": None, "https": None}
+        
         try:
-            response = requests.post(self.api_url, headers=headers, json=payload, timeout=30)
+            response = requests.post(self.api_url, **request_kwargs)
             response_data = response.json()
             
             if not response.ok:
@@ -201,7 +214,7 @@ class KetuTextToImageNode:
         except requests.exceptions.RequestException as e:
             raise ValueError(f"网络请求失败: {str(e)}")
 
-    def query_task_status(self, jwt_token, task_id):
+    def query_task_status(self, jwt_token, task_id, use_proxy=True):
         """查询任务状态"""
         query_url = f"https://api-beijing.klingai.com/v1/images/generations/{task_id}"
         headers = {
@@ -210,8 +223,16 @@ class KetuTextToImageNode:
             "User-Agent": "ComfyUI-Ketu/1.0"
         }
         
+        # 配置代理
+        request_kwargs = {
+            "headers": headers,
+            "timeout": 30
+        }
+        if use_proxy:
+            request_kwargs["proxies"] = {"http": None, "https": None}
+        
         try:
-            response = requests.get(query_url, headers=headers, timeout=30)
+            response = requests.get(query_url, **request_kwargs)
             response_data = response.json()
             
             if not response.ok:
@@ -227,13 +248,13 @@ class KetuTextToImageNode:
         except requests.exceptions.RequestException as e:
             raise ValueError(f"查询请求失败: {str(e)}")
 
-    def wait_for_completion(self, jwt_token, task_id, timeout, poll_interval):
+    def wait_for_completion(self, jwt_token, task_id, timeout, poll_interval, use_proxy=True):
         """等待任务完成"""
         start_time = time.time()
         
         while time.time() - start_time < timeout:
             try:
-                task_data = self.query_task_status(jwt_token, task_id)
+                task_data = self.query_task_status(jwt_token, task_id, use_proxy)
                 task_status = task_data.get('task_status', '')
                 
                 if task_status == 'succeed':
@@ -255,10 +276,15 @@ class KetuTextToImageNode:
         
         raise ValueError(f"任务超时（{timeout}秒），请稍后重试")
 
-    def download_image(self, image_url):
+    def download_image(self, image_url, use_proxy=True):
         """下载图像并转换为tensor"""
         try:
-            response = requests.get(image_url, timeout=60)
+            # 配置代理
+            request_kwargs = {"timeout": 60}
+            if use_proxy:
+                request_kwargs["proxies"] = {"http": None, "https": None}
+            
+            response = requests.get(image_url, **request_kwargs)
             response.raise_for_status()
             
             image = Image.open(io.BytesIO(response.content))
@@ -277,7 +303,7 @@ class KetuTextToImageNode:
             raise ValueError(f"图像下载失败: {str(e)}")
 
     def generate_image(self, access_key, secret_key, prompt, model_name, aspect_ratio, 
-                      wait_for_result, timeout, poll_interval, negative_prompt="", 
+                      wait_for_result, timeout, poll_interval, use_proxy=True, negative_prompt="", 
                       image=None, image_url="", image_reference="", 
                       image_fidelity=0.5, human_fidelity=0.45):
         """
@@ -352,7 +378,7 @@ class KetuTextToImageNode:
             print(f"[可图] 开始生成图像，模型: {model_name}，比例: {aspect_ratio}")
             
             # 提交任务
-            task_data = self.submit_task(jwt_token, payload)
+            task_data = self.submit_task(jwt_token, payload, use_proxy)
             task_id = task_data.get('task_id')
             
             if not task_id:
@@ -377,7 +403,7 @@ class KetuTextToImageNode:
             
             # 等待任务完成
             print(f"[可图] 等待任务完成，超时时间: {timeout}秒")
-            completed_data = self.wait_for_completion(jwt_token, task_id, timeout, poll_interval)
+            completed_data = self.wait_for_completion(jwt_token, task_id, timeout, poll_interval, use_proxy)
             
             # 提取图像URL
             task_result = completed_data.get('task_result', {})
@@ -393,7 +419,7 @@ class KetuTextToImageNode:
                     image_url = img_data['url']
                     print(f"[可图] 下载图像 {i+1}: {image_url}")
                     
-                    image_tensor = self.download_image(image_url)
+                    image_tensor = self.download_image(image_url, use_proxy)
                     image_tensors.append(image_tensor)
             
             if not image_tensors:
