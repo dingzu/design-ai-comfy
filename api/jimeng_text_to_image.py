@@ -14,7 +14,7 @@ class JiMengTextToImageNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "environment": (["staging", "prod", "idc"], {
+                "environment": (["staging", "prod", "idc", "overseas", "domestic"], {
                     "default": "staging",
                     "tooltip": "选择万擎网关环境"
                 }),
@@ -63,6 +63,14 @@ class JiMengTextToImageNode:
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
                     "tooltip": "是否使用代理服务器"
+                }),
+                "custom_base_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "自定义API基础URL（优先级高于环境选择）"
+                }),
+                "custom_endpoint": ("STRING", {
+                    "default": "/llm-serve/v1/images/generations",
+                    "tooltip": "自定义API端点路径"
                 })
             }
         }
@@ -76,11 +84,13 @@ class JiMengTextToImageNode:
         self.environments = {
             "staging": "https://llm-gateway-staging.corp.kuaishou.com",
             "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
-            "idc": "http://llm-gateway.internal"
+            "idc": "http://llm-gateway.internal",
+            "overseas": "http://llm-gateway-sgp.internal",
+            "domestic": "http://llm-gateway.internal"
         }
 
     def generate_image(self, environment, api_key, prompt, response_format, size, 
-                      seed, guidance_scale, watermark, timeout, use_proxy):
+                      seed, guidance_scale, watermark, timeout, use_proxy, custom_base_url="", custom_endpoint="/llm-serve/v1/images/generations"):
         """
         即梦文生图
         """
@@ -92,9 +102,16 @@ class JiMengTextToImageNode:
             if not prompt or prompt.strip() == "":
                 raise ValueError("图像描述不能为空")
 
-            # 构建URL
-            base_url = self.environments[environment]
-            url = f"{base_url}/llm-serve/v1/images/generations"
+            # 构建URL - 优先使用用户自定义的base_url
+            if custom_base_url and custom_base_url.strip():
+                base_url = custom_base_url.strip().rstrip('/')
+            else:
+                base_url = self.environments[environment]
+            
+            # 使用自定义端点路径
+            endpoint = custom_endpoint.strip() if custom_endpoint.strip() else "/llm-serve/v1/images/generations"
+            endpoint = endpoint.lstrip('/')  # 移除开头的斜杠
+            url = f"{base_url}/{endpoint}"
             
             # 构建请求体
             payload = {

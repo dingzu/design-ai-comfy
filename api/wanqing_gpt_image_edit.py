@@ -14,7 +14,7 @@ class WanQingGPTImageEditNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "environment": (["staging", "prod", "idc"], {
+                "environment": (["staging", "prod", "idc", "overseas", "domestic"], {
                     "default": "prod",
                     "tooltip": "选择万擎网关环境"
                 }),
@@ -66,6 +66,14 @@ class WanQingGPTImageEditNode:
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
                     "tooltip": "是否使用代理服务器"
+                }),
+                "custom_base_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "自定义API基础URL（优先级高于环境选择）"
+                }),
+                "custom_endpoint": ("STRING", {
+                    "default": "/llm-serve/gpt-image-1-edits/v1/images/edits",
+                    "tooltip": "自定义API端点路径"
                 })
             },
             "optional": {
@@ -85,7 +93,9 @@ class WanQingGPTImageEditNode:
             "staging": "https://llm-gateway-staging-sgp.corp.kuaishou.com",
             "prod": "https://llm-gateway-prod-sgp.corp.kuaishou.com", 
             "prod-old": "https://llm-gateway-prod.corp.kuaishou.com",
-            "idc": "http://llm-gateway.internal"
+            "idc": "http://llm-gateway.internal",
+            "overseas": "http://llm-gateway-sgp.internal",
+            "domestic": "http://llm-gateway.internal"
         }
 
     def tensor_to_pil(self, tensor):
@@ -218,7 +228,7 @@ class WanQingGPTImageEditNode:
         return buffer.getvalue(), final_size
 
     def edit_image(self, environment, api_key, image, prompt, 
-                   image_count, image_size, quality, output_format, max_file_size_mb, timeout, use_proxy, mask=None):
+                   image_count, image_size, quality, output_format, max_file_size_mb, timeout, use_proxy, custom_base_url="", custom_endpoint="/llm-serve/gpt-image-1-edits/v1/images/edits", mask=None):
         """
         万擎 GPT 图像编辑
         """
@@ -295,9 +305,16 @@ class WanQingGPTImageEditNode:
             else:
                 print(f"[万擎 GPT 编辑] 跳过遮罩图像压缩（未提供遮罩）")
 
-            # 构建URL
-            base_url = self.environments[environment]
-            url = f"{base_url}/llm-serve/gpt-image-1-edits/v1/images/edits"
+            # 构建URL - 优先使用用户自定义的base_url
+            if custom_base_url and custom_base_url.strip():
+                base_url = custom_base_url.strip().rstrip('/')
+            else:
+                base_url = self.environments[environment]
+            
+            # 使用自定义端点路径
+            endpoint = custom_endpoint.strip() if custom_endpoint.strip() else "/llm-serve/gpt-image-1-edits/v1/images/edits"
+            endpoint = endpoint.lstrip('/')  # 移除开头的斜杠
+            url = f"{base_url}/{endpoint}"
             debug_info["url"] = url
             
             # 构建multipart/form-data请求 (model字段放第一位 - 网关已知问题)

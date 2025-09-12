@@ -14,7 +14,7 @@ class QwenImageText2ImgNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "environment": (["prod", "staging", "idc"], {
+                "environment": (["prod", "staging", "idc", "overseas", "domestic"], {
                     "default": "prod",
                     "tooltip": "选择万擎网关环境"
                 }),
@@ -63,6 +63,18 @@ class QwenImageText2ImgNode:
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
                     "tooltip": "是否使用代理服务器"
+                }),
+                "custom_base_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "自定义API基础URL（优先级高于环境选择）"
+                }),
+                "custom_submit_endpoint": ("STRING", {
+                    "default": "/ai-serve/v1/qwen-image/text2image/image-synthesis",
+                    "tooltip": "自定义任务提交端点路径"
+                }),
+                "custom_query_endpoint": ("STRING", {
+                    "default": "/ai-serve/v1/qwen-image-tasks/{task_id}",
+                    "tooltip": "自定义任务查询端点路径（支持{task_id}占位符）"
                 })
             }
         }
@@ -76,11 +88,13 @@ class QwenImageText2ImgNode:
         self.environments = {
             "staging": "https://llm-gateway-staging-sgp.corp.kuaishou.com",
             "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
-            "idc": "http://llm-gateway.internal"
+            "idc": "http://llm-gateway.internal",
+            "overseas": "http://llm-gateway-sgp.internal",
+            "domestic": "http://llm-gateway.internal"
         }
 
     def generate_image(self, environment, api_key, prompt, image_count, 
-                      image_size, prompt_extend, watermark, timeout, poll_interval, use_proxy):
+                      image_size, prompt_extend, watermark, timeout, poll_interval, use_proxy, custom_base_url="", custom_submit_endpoint="/ai-serve/v1/qwen-image/text2image/image-synthesis", custom_query_endpoint="/ai-serve/v1/qwen-image-tasks/{task_id}"):
         """
         Qwen-Image 文本生成图像（异步API）
         """
@@ -92,9 +106,16 @@ class QwenImageText2ImgNode:
             if not prompt or prompt.strip() == "":
                 raise ValueError("图像描述不能为空")
 
-            # 构建URL
-            base_url = self.environments[environment]
-            submit_url = f"{base_url}/ai-serve/v1/qwen-image/text2image/image-synthesis"
+            # 构建URL - 优先使用用户自定义的base_url
+            if custom_base_url and custom_base_url.strip():
+                base_url = custom_base_url.strip().rstrip('/')
+            else:
+                base_url = self.environments[environment]
+            
+            # 使用自定义提交端点路径
+            submit_endpoint = custom_submit_endpoint.strip() if custom_submit_endpoint.strip() else "/ai-serve/v1/qwen-image/text2image/image-synthesis"
+            submit_endpoint = submit_endpoint.lstrip('/')  # 移除开头的斜杠
+            submit_url = f"{base_url}/{submit_endpoint}"
             
             # 构建请求体
             payload = {
@@ -154,7 +175,7 @@ class QwenImageText2ImgNode:
             print(f"[Qwen-Image] 任务提交成功，任务ID: {task_id}")
             
             # 2. 轮询任务状态
-            result = self._poll_task_status(base_url, api_key, task_id, timeout, poll_interval, use_proxy)
+            result = self._poll_task_status(base_url, api_key, task_id, timeout, poll_interval, use_proxy, custom_query_endpoint)
             
             if not result:
                 raise ValueError("任务执行失败或超时")
@@ -171,9 +192,12 @@ class QwenImageText2ImgNode:
         except Exception as e:
             raise ValueError(f"图像生成失败: {str(e)}")
 
-    def _poll_task_status(self, base_url, api_key, task_id, timeout, poll_interval, use_proxy):
+    def _poll_task_status(self, base_url, api_key, task_id, timeout, poll_interval, use_proxy, custom_query_endpoint="/ai-serve/v1/qwen-image-tasks/{task_id}"):
         """轮询任务状态"""
-        query_url = f"{base_url}/ai-serve/v1/qwen-image-tasks/{task_id}"
+        # 使用自定义查询端点路径
+        query_endpoint = custom_query_endpoint.strip() if custom_query_endpoint.strip() else "/ai-serve/v1/qwen-image-tasks/{task_id}"
+        query_endpoint = query_endpoint.lstrip('/').format(task_id=task_id)  # 移除开头的斜杠并替换占位符
+        query_url = f"{base_url}/{query_endpoint}"
         headers = {"x-api-key": api_key}
         
         start_time = time.time()

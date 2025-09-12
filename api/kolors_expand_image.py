@@ -14,7 +14,7 @@ class KolorsExpandImageNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "environment": (["staging", "prod", "idc"], {
+                "environment": (["staging", "prod", "idc", "overseas", "domestic"], {
                     "default": "staging",
                     "tooltip": "选择万擎网关环境"
                 }),
@@ -76,6 +76,18 @@ class KolorsExpandImageNode:
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
                     "tooltip": "是否使用代理服务器"
+                }),
+                "custom_base_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "自定义API基础URL（优先级高于环境选择）"
+                }),
+                "custom_submit_endpoint": ("STRING", {
+                    "default": "/ai-serve/v1/ktu/images/editing/expand",
+                    "tooltip": "自定义任务提交端点路径"
+                }),
+                "custom_query_endpoint": ("STRING", {
+                    "default": "/ai-serve/v1/ktu/images/editing/expand/{task_id}",
+                    "tooltip": "自定义任务查询端点路径（支持{task_id}占位符）"
                 })
             },
             "optional": {
@@ -136,7 +148,9 @@ class KolorsExpandImageNode:
         self.environments = {
             "staging": "https://llm-gateway-staging.corp.kuaishou.com",
             "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
-            "idc": "http://llm-gateway.internal"
+            "idc": "http://llm-gateway.internal",
+            "overseas": "http://llm-gateway-sgp.internal",
+            "domestic": "http://llm-gateway.internal"
         }
 
     def tensor_to_base64(self, tensor):
@@ -164,10 +178,18 @@ class KolorsExpandImageNode:
         base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return base64_string
 
-    def submit_task(self, environment, api_key, payload, use_proxy):
+    def submit_task(self, environment, api_key, payload, use_proxy, custom_base_url="", custom_submit_endpoint="/ai-serve/v1/ktu/images/editing/expand"):
         """提交扩展任务"""
-        base_url = self.environments[environment]
-        url = f"{base_url}/ai-serve/v1/ktu/images/editing/expand"
+        # 构建URL - 优先使用用户自定义的base_url
+        if custom_base_url and custom_base_url.strip():
+            base_url = custom_base_url.strip().rstrip('/')
+        else:
+            base_url = self.environments[environment]
+        
+        # 使用自定义提交端点路径
+        endpoint = custom_submit_endpoint.strip() if custom_submit_endpoint.strip() else "/ai-serve/v1/ktu/images/editing/expand"
+        endpoint = endpoint.lstrip('/')  # 移除开头的斜杠
+        url = f"{base_url}/{endpoint}"
         
         headers = {
             "x-api-key": api_key.strip(),
@@ -214,10 +236,18 @@ class KolorsExpandImageNode:
         
         return response_data.get('data', {})
 
-    def poll_task_result(self, environment, api_key, task_id, timeout, poll_interval, use_proxy):
+    def poll_task_result(self, environment, api_key, task_id, timeout, poll_interval, use_proxy, custom_base_url="", custom_query_endpoint="/ai-serve/v1/ktu/images/editing/expand/{task_id}"):
         """轮询任务结果"""
-        base_url = self.environments[environment]
-        url = f"{base_url}/ai-serve/v1/ktu/images/editing/expand/{task_id}"
+        # 构建URL - 优先使用用户自定义的base_url
+        if custom_base_url and custom_base_url.strip():
+            base_url = custom_base_url.strip().rstrip('/')
+        else:
+            base_url = self.environments[environment]
+        
+        # 使用自定义查询端点路径
+        endpoint = custom_query_endpoint.strip() if custom_query_endpoint.strip() else "/ai-serve/v1/ktu/images/editing/expand/{task_id}"
+        endpoint = endpoint.lstrip('/').format(task_id=task_id)  # 移除开头的斜杠并替换占位符
+        url = f"{base_url}/{endpoint}"
         
         headers = {
             "x-api-key": api_key.strip(),
@@ -281,7 +311,7 @@ class KolorsExpandImageNode:
 
     def expand_image(self, environment, api_key, prompt, model_name, 
                     up_expansion_ratio, down_expansion_ratio, left_expansion_ratio, right_expansion_ratio,
-                    timeout, poll_interval, use_proxy, image=None, image_url=None, response_format="url", 
+                    timeout, poll_interval, use_proxy, custom_base_url="", custom_submit_endpoint="/ai-serve/v1/ktu/images/editing/expand", custom_query_endpoint="/ai-serve/v1/ktu/images/editing/expand/{task_id}", image=None, image_url=None, response_format="url", 
                     size="adaptive", seed=-1, guidance_scale=7.5, steps=20, negative_prompt="", num_images=1):
         """
         可图扩图
@@ -343,7 +373,7 @@ class KolorsExpandImageNode:
             print(f"[可图扩图] 请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
-            task_data = self.submit_task(environment, api_key, payload, use_proxy)
+            task_data = self.submit_task(environment, api_key, payload, use_proxy, custom_base_url, custom_submit_endpoint)
             task_id = task_data.get('task_id')
             
             if not task_id:
@@ -352,7 +382,7 @@ class KolorsExpandImageNode:
             print(f"[可图扩图] 任务已提交，task_id: {task_id}")
             
             # 轮询任务结果
-            result_data = self.poll_task_result(environment, api_key, task_id, timeout, poll_interval, use_proxy)
+            result_data = self.poll_task_result(environment, api_key, task_id, timeout, poll_interval, use_proxy, custom_base_url, custom_query_endpoint)
             
             # 处理生成的图像
             data = result_data.get('data', {})

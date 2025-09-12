@@ -14,7 +14,7 @@ class QwenImageEditNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "environment": (["prod", "staging", "idc"], {
+                "environment": (["prod", "staging", "idc", "overseas", "domestic"], {
                     "default": "prod",
                     "tooltip": "选择万擎网关环境"
                 }),
@@ -49,6 +49,14 @@ class QwenImageEditNode:
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
                     "tooltip": "是否使用代理服务器"
+                }),
+                "custom_base_url": ("STRING", {
+                    "default": "",
+                    "tooltip": "自定义API基础URL（优先级高于环境选择）"
+                }),
+                "custom_endpoint": ("STRING", {
+                    "default": "/ai-serve/v1/qwen-image/multimodal-generation/generation",
+                    "tooltip": "自定义API端点路径"
                 })
             }
         }
@@ -62,11 +70,13 @@ class QwenImageEditNode:
         self.environments = {
             "staging": "https://llm-gateway-staging-sgp.corp.kuaishou.com",
             "prod": "https://llm-gateway-prod.corp.kuaishou.com", 
-            "idc": "http://llm-gateway.internal"
+            "idc": "http://llm-gateway.internal",
+            "overseas": "http://llm-gateway-sgp.internal",
+            "domestic": "http://llm-gateway.internal"
         }
 
     def edit_image(self, environment, api_key, image, prompt, negative_prompt, 
-                   watermark, timeout, use_proxy):
+                   watermark, timeout, use_proxy, custom_base_url="", custom_endpoint="/ai-serve/v1/qwen-image/multimodal-generation/generation"):
         """
         Qwen-Image 图像编辑（异步API）
         """
@@ -84,9 +94,16 @@ class QwenImageEditNode:
             # 转换图像为base64
             image_base64 = self._image_to_base64(image)
 
-            # 构建URL
-            base_url = self.environments[environment]
-            api_url = f"{base_url}/ai-serve/v1/qwen-image/multimodal-generation/generation"
+            # 构建URL - 优先使用用户自定义的base_url
+            if custom_base_url and custom_base_url.strip():
+                base_url = custom_base_url.strip().rstrip('/')
+            else:
+                base_url = self.environments[environment]
+            
+            # 使用自定义端点路径
+            endpoint = custom_endpoint.strip() if custom_endpoint.strip() else "/ai-serve/v1/qwen-image/multimodal-generation/generation"
+            endpoint = endpoint.lstrip('/')  # 移除开头的斜杠
+            api_url = f"{base_url}/{endpoint}"
             
             # 构建请求体 - 新的消息格式
             payload = {
