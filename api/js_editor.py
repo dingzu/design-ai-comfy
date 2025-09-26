@@ -13,7 +13,7 @@ class JsEditorNode:
             "required": {
                 "js_code": ("STRING", {
                     "multiline": True,
-                    "default": "globalEditor.changeSize(1080, 1920); // 设置画布大小\nconst image = await editor.createLayer('image', {\n    fills: [{\n         url: 'https://cdnfile.corp.kuaishou.com/kc/files/a/design-ai/poify/2e098d8604c1822136f5dfc0b.png'\n    }]\n}); // 添加图片图层\nconst text = await editor.createLayer('text', {\n    text: 'Hello World!',\n    fontSize: 80,\n    strokes:[{fill:'red', strokeWidth: 2, stroke: 'blue'}]\n});// 添加文字图层",
+                    "default": "await editor.restore(json) \n await manager.changeSize(1024,1024)",
                     "tooltip": "要在编辑器中运行的JavaScript代码"
                 }),
                 "api_token": ("STRING", {
