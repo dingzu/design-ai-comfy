@@ -62,7 +62,11 @@ class QwenImageText2ImgNode:
                 }),
                 "use_proxy": ("BOOLEAN", {
                     "default": True,
-                    "tooltip": "是否使用代理服务器"
+                    "tooltip": "是否使用代理服务器（用于API调用）"
+                }),
+                "image_download_proxy": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "图片下载是否使用代理（线上环境访问外部图片URL可能需要启用）"
                 }),
                 "custom_base_url": ("STRING", {
                     "default": "",
@@ -94,7 +98,7 @@ class QwenImageText2ImgNode:
         }
 
     def generate_image(self, environment, api_key, prompt, image_count, 
-                      image_size, prompt_extend, watermark, timeout, poll_interval, use_proxy, custom_base_url="", custom_submit_endpoint="/ai-serve/v1/qwen-image/text2image/image-synthesis", custom_query_endpoint="/ai-serve/v1/qwen-image-tasks/{task_id}"):
+                      image_size, prompt_extend, watermark, timeout, poll_interval, use_proxy, image_download_proxy, custom_base_url="", custom_submit_endpoint="/ai-serve/v1/qwen-image/text2image/image-synthesis", custom_query_endpoint="/ai-serve/v1/qwen-image-tasks/{task_id}"):
         """
         Qwen-Image 文本生成图像（异步API）
         """
@@ -181,7 +185,7 @@ class QwenImageText2ImgNode:
                 raise ValueError("任务执行失败或超时")
             
             # 3. 处理结果
-            return self._process_result(result, task_id, use_proxy)
+            return self._process_result(result, task_id, image_download_proxy)
             
         except requests.exceptions.Timeout:
             raise ValueError(f"请求超时（{timeout}秒）。Qwen-Image生成可能需要较长时间，建议增加超时时间。")
@@ -253,7 +257,7 @@ class QwenImageText2ImgNode:
         
         return None
 
-    def _process_result(self, result, task_id, use_proxy):
+    def _process_result(self, result, task_id, image_download_proxy):
         """处理生成结果"""
         try:
             # 提取结果数据
@@ -277,12 +281,21 @@ class QwenImageText2ImgNode:
                 # 下载图像
                 try:
                     print(f"[Qwen-Image] 下载图像 {idx + 1}: {image_url}")
-                    # 配置代理
+                    
+                    # 配置图片下载代理设置
                     download_kwargs = {"timeout": 60}
-                    if use_proxy:
+                    if image_download_proxy:
+                        # 启用系统默认代理（用于访问外部图片URL）
+                        print(f"[Qwen-Image] 图片下载启用代理")
+                        # 不设置proxies参数，使用系统默认代理
+                    else:
+                        # 禁用代理（用于内部网络或直连）
+                        print(f"[Qwen-Image] 图片下载禁用代理")
                         download_kwargs["proxies"] = {"http": None, "https": None}
                     
                     img_response = requests.get(image_url, **download_kwargs)
+                    print(f"[Qwen-Image] 下载响应状态码: {img_response.status_code}")
+                    
                     if img_response.status_code == 200:
                         image = Image.open(io.BytesIO(img_response.content))
                         
@@ -295,12 +308,18 @@ class QwenImageText2ImgNode:
                         image_tensor = torch.from_numpy(image_np)[None,]
                         images_tensor.append(image_tensor)
                         
-                        print(f"[Qwen-Image] 图像 {idx + 1}: {image.size}, 模式: {image.mode}")
+                        print(f"[Qwen-Image] 图像 {idx + 1} 下载成功: {image.size}, 模式: {image.mode}")
                     else:
-                        print(f"[Qwen-Image] 图像下载失败 {img_response.status_code}")
+                        print(f"[Qwen-Image] 图像下载失败 - 状态码: {img_response.status_code}")
+                        print(f"[Qwen-Image] 响应内容: {img_response.text[:200]}")
+                        if hasattr(img_response, 'headers'):
+                            print(f"[Qwen-Image] 响应头: {dict(img_response.headers)}")
                         
                 except Exception as e:
                     print(f"[Qwen-Image] 下载图像 {idx + 1} 异常: {str(e)}")
+                    print(f"[Qwen-Image] 异常类型: {type(e).__name__}")
+                    import traceback
+                    print(f"[Qwen-Image] 异常堆栈: {traceback.format_exc()}")
             
             if not images_tensor:
                 raise ValueError("没有成功下载的图像")
