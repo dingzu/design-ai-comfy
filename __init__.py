@@ -70,6 +70,8 @@ from .api.qwen_image_text2img import QwenImageText2ImgNode
 from .api.qwen_image_edit import QwenImageEditNode
 from .api.jimeng_text_to_image import JiMengTextToImageNode
 from .api.jimeng_image_to_image import JiMengImageToImageNode
+from .api.wanqing_jimeng_4_0_text2img import WanQingJiMeng40TextToImageNode
+from .api.wanqing_jimeng_4_0_img2img import WanQingJiMeng40ImageToImageNode
 from .api.kolors_text_to_image import KolorsTextToImageNode
 from .api.kolors_image_to_image import KolorsImageToImageNode
 from .api.kolors_expand_image import KolorsExpandImageNode
@@ -157,6 +159,8 @@ NODE_CLASS_MAPPINGS = {
     "QwenImageEdit": QwenImageEditNode,
     "JiMengTextToImage": JiMengTextToImageNode,
     "JiMengImageToImage": JiMengImageToImageNode,
+    "WanQingJiMeng40TextToImage": WanQingJiMeng40TextToImageNode,
+    "WanQingJiMeng40ImageToImage": WanQingJiMeng40ImageToImageNode,
     "KolorsTextToImage": KolorsTextToImageNode,
     "KolorsImageToImage": KolorsImageToImageNode,
     "KolorsExpandImage": KolorsExpandImageNode,
@@ -244,6 +248,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "QwenImageEdit": "Qwen-Image 图像编辑",
     "JiMengTextToImage": "即梦文生图",
     "JiMengImageToImage": "即梦图生图",
+    "WanQingJiMeng40TextToImage": "万擎即梦4.0文生图",
+    "WanQingJiMeng40ImageToImage": "万擎即梦4.0图生图",
     "KolorsTextToImage": "可图文生图",
     "KolorsImageToImage": "可图图生图",
     "KolorsExpandImage": "可图扩图",
