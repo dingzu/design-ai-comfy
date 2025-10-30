@@ -81,6 +81,10 @@ from .api.ketu_text_to_image import KetuTextToImageNode
 from .img.image_overlay import ImageOverlay
 from .img.XingYueSize import XingYueSize
 from .api.gemini_2_5_flash_image_preview import Gemini25FlashImagePreviewNode
+from .apiv2.jimeng_multi_image_to_image_v2 import JiMengMultiImageToImageNodeV2
+from .apiv2.qwen_image_edit import QwenImageEditNode as QwenImageEditNodeV2
+from .apiv2.wanqing_jimeng_4_0_img2img_v2 import WanQingJiMeng40ImageToImageNodeV2
+from .apiv2.wanqing_jimeng_4_0_text2img_v2 import WanQingJiMeng40TextToImageNodeV2
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -169,7 +173,11 @@ NODE_CLASS_MAPPINGS = {
     "KetuTextToImage": KetuTextToImageNode,
     "ImageOverlay": ImageOverlay,
     "XingYueSize": XingYueSize,
-    "Gemini25FlashImagePreview": Gemini25FlashImagePreviewNode
+    "Gemini25FlashImagePreview": Gemini25FlashImagePreviewNode,
+    "JiMengMultiImageToImageV2": JiMengMultiImageToImageNodeV2,
+    "QwenImageEditV2": QwenImageEditNodeV2,
+    "WanQingJiMeng40ImageToImageV2": WanQingJiMeng40ImageToImageNodeV2,
+    "WanQingJiMeng40TextToImageV2": WanQingJiMeng40TextToImageNodeV2
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -258,7 +266,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KetuTextToImage": "可图文生图 (Ketu T2I)",
     "ImageOverlay": "Image Overlay",
     "XingYueSize": "星月尺寸",
-    "Gemini25FlashImagePreview": "Gemini-2.5-Flash 图像预览"
+    "Gemini25FlashImagePreview": "Gemini-2.5-Flash 图像预览",
+    "JiMengMultiImageToImageV2": "即梦多图生图 V2",
+    "QwenImageEditV2": "Qwen-Image 图像编辑 V2",
+    "WanQingJiMeng40ImageToImageV2": "万擎即梦4.0图生图 V2",
+    "WanQingJiMeng40TextToImageV2": "万擎即梦4.0文生图 V2"
 }
 
 
