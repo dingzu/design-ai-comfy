@@ -63,7 +63,7 @@ class WanQingJiMeng40TextToImageNodeV2:
                     "tooltip": "图片下载是否使用代理（线上环境访问外部图片URL可能需要启用）"
                 }),
                 "image_proxy_url": ("STRING", {
-                    "default": "http://http://10.20.254.26:11080",
+                    "default": "http://10.20.254.26:11080",
                     "tooltip": "图片下载代理服务器地址"
                 }),
                 "custom_base_url": ("STRING", {

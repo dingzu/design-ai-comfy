@@ -9,7 +9,7 @@ from PIL import Image
 from typing import List, Dict, Any, Optional, Tuple
 import folder_paths
 
-class WanQingJiMeng40ImageToImageNodeV2:
+class JiMengImageToImageNodeV2:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -23,25 +23,31 @@ class WanQingJiMeng40ImageToImageNodeV2:
                     "tooltip": "万擎网关API密钥 (x-api-key)"
                 }),
                 "prompt": ("STRING", {
-                    "default": "生成狗狗趴在草地上的近景画面",
+                    "default": "改成爱心形状的泡泡",
                     "multiline": True,
-                    "tooltip": "图像编辑描述提示词，建议结构：风格关键词 + 主要美学关键词 + 视觉内容 + 视觉上下文 + 补充美学关键词"
-                }),
-                "size": (["4K", "2K", "1K", "1024x1024", "1024x1536", "1536x1024", "adaptive"], {
-                    "default": "2K",
-                    "tooltip": "图像尺寸（4K支持超高清输出，adaptive自适应输入图像尺寸）"
+                    "tooltip": "图像编辑描述提示词"
                 }),
                 "response_format": (["url", "b64_json"], {
-                    "default": "url",
+                    "default": "b64_json",
                     "tooltip": "响应格式"
                 }),
-                "sequential_image_generation": (["enabled", "disabled"], {
-                    "default": "disabled",
-                    "tooltip": "顺序图像生成"
+                "size": (["1024x1024", "1024x1536", "1536x1024", "adaptive"], {
+                    "default": "adaptive",
+                    "tooltip": "图像尺寸"
                 }),
-                "stream": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "是否启用流式响应"
+                "seed": ("INT", {
+                    "default": 21,
+                    "min": 0,
+                    "max": 2147483647,
+                    "step": 1,
+                    "tooltip": "随机种子"
+                }),
+                "guidance_scale": ("FLOAT", {
+                    "default": 5.5,
+                    "min": 0.1,
+                    "max": 20.0,
+                    "step": 0.1,
+                    "tooltip": "引导强度"
                 }),
                 "watermark": ("BOOLEAN", {
                     "default": True,
@@ -80,56 +86,8 @@ class WanQingJiMeng40ImageToImageNodeV2:
                     "tooltip": "输入图像（可选，如果不提供则使用图像URL）"
                 }),
                 "image_url": ("STRING", {
-                    "default": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seedream4_imageToimage.png",
+                    "default": "https://ark-project.tos-cn-beijing.volces.com/doc_image/seededit_i2i.jpeg",
                     "tooltip": "图像URL（当未提供输入图像时使用）"
-                }),
-                "n": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 4,
-                    "step": 1,
-                    "tooltip": "生成图像数量（1-4张）"
-                }),
-                "seed": ("INT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 2147483647,
-                    "step": 1,
-                    "tooltip": "随机种子，-1为随机生成"
-                }),
-                "negative_prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "负面提示词，描述不希望出现的内容"
-                }),
-                "quality": (["hd", "standard"], {
-                    "default": "hd",
-                    "tooltip": "图像质量：hd（高清）或 standard（标准）"
-                }),
-                "style": (["natural", "vivid"], {
-                    "default": "vivid",
-                    "tooltip": "图像风格：natural（自然）或 vivid（生动）"
-                }),
-                "guidance_scale": ("FLOAT", {
-                    "default": 7.5,
-                    "min": 1.0,
-                    "max": 20.0,
-                    "step": 0.5,
-                    "tooltip": "引导强度，控制生成图像与提示词的匹配程度"
-                }),
-                "steps": ("INT", {
-                    "default": 50,
-                    "min": 10,
-                    "max": 100,
-                    "step": 1,
-                    "tooltip": "推理步数，更多步数通常得到更高质量图像"
-                }),
-                "strength": ("FLOAT", {
-                    "default": 0.8,
-                    "min": 0.0,
-                    "max": 1.0,
-                    "step": 0.05,
-                    "tooltip": "图像变化强度，0.0保持原图，1.0完全重新生成"
                 })
             }
         }
@@ -167,7 +125,7 @@ class WanQingJiMeng40ImageToImageNodeV2:
         """打印并格式化日志输出"""
         log_output = self._get_execution_log()
         print("\n" + "="*80)
-        print("万擎即梦4.0图生图 执行日志:")
+        print("即梦图生图 V2 执行日志:")
         print("="*80)
         print(log_output)
         print("="*80 + "\n")
@@ -175,7 +133,6 @@ class WanQingJiMeng40ImageToImageNodeV2:
 
     def _create_blank_image(self, width=512, height=512):
         """创建空白图片tensor"""
-        # 创建白色背景图片
         blank_array = np.ones((1, height, width, 3), dtype=np.float32)
         return torch.from_numpy(blank_array)
 
@@ -204,26 +161,17 @@ class WanQingJiMeng40ImageToImageNodeV2:
         base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return f"data:image/jpeg;base64,{base64_string}"
 
-    def generate_image(self, environment, api_key, prompt, size, response_format, 
-                      sequential_image_generation, stream, watermark, timeout, use_proxy, 
-                      image_download_proxy, image_proxy_url, custom_base_url="", custom_endpoint="/llm-serve/v1/images/generations",
-                      image=None, image_url=None, n=1, seed=-1, negative_prompt="", 
-                      quality="hd", style="vivid", guidance_scale=7.5, steps=50, strength=0.8):
+    def generate_image(self, environment, api_key, prompt, response_format, size, 
+                      seed, guidance_scale, watermark, timeout, use_proxy, 
+                      image_download_proxy, image_proxy_url, 
+                      custom_base_url="", custom_endpoint="/llm-serve/v1/images/generations", 
+                      image=None, image_url=None):
         """
-        万擎即梦4.0图生图 - 支持4K超高清、多图生成、风格控制等高级功能
-        
-        支持的功能:
-        - 4K超高清图像生成
-        - 多图像生成 (1-4张)
-        - 可重复结果 (种子控制)
-        - 负面提示词过滤
-        - 质量和风格控制
-        - 精细的引导参数调节
-        - 图像变化强度控制
+        即梦图生图 V2
         """
         # 清空并初始化日志
         self._clear_logs()
-        self._log("开始图像生成任务")
+        self._log("开始即梦图生图任务")
         
         try:
             # 验证必需参数
@@ -276,85 +224,39 @@ class WanQingJiMeng40ImageToImageNodeV2:
             
             # 使用自定义端点路径
             endpoint = custom_endpoint.strip() if custom_endpoint.strip() else "/llm-serve/v1/images/generations"
-            endpoint = endpoint.lstrip('/')  # 移除开头的斜杠
+            endpoint = endpoint.lstrip('/')
             url = f"{base_url}/{endpoint}"
             self._log(f"完整API地址: {url}")
             
             # 构建请求体
             self._log("构建请求体")
             payload = {
-                "model": "doubao-seedream-4-0-250828",
+                "model": "doubao-seededit-3-0-i2i-250628",
                 "prompt": prompt.strip(),
                 "image": image_input,
-                "size": size,
-                "sequential_image_generation": sequential_image_generation,
-                "stream": stream,
                 "response_format": response_format,
+                "size": size,
+                "seed": seed,
+                "guidance_scale": guidance_scale,
                 "watermark": watermark
             }
             
-            # 添加图像数量
-            if n > 1:
-                payload["n"] = n
-                
-            # 添加随机种子
-            if seed != -1:
-                payload["seed"] = seed
-                
-            # 添加负面提示词
-            if negative_prompt and negative_prompt.strip():
-                payload["negative_prompt"] = negative_prompt.strip()
-                
-            # 添加质量设置
-            if quality != "hd":
-                payload["quality"] = quality
-                
-            # 添加风格设置
-            if style != "vivid":
-                payload["style"] = style
-                
-            # 添加引导强度
-            if guidance_scale != 7.5:
-                payload["guidance_scale"] = guidance_scale
-                
-            # 添加推理步数
-            if steps != 50:
-                payload["steps"] = steps
-                
-            # 添加图像变化强度
-            if strength != 0.8:
-                payload["strength"] = strength
+            self._log(f"模型: doubao-seededit-3-0-i2i-250628")
+            self._log(f"提示词: {prompt.strip()[:100]}{'...' if len(prompt.strip()) > 100 else ''}")
+            self._log(f"输入图像: {'Tensor格式' if image is not None else 'URL格式'}")
+            self._log(f"响应格式: {response_format}")
+            self._log(f"图像尺寸: {size}")
+            self._log(f"随机种子: {seed}")
+            self._log(f"引导强度: {guidance_scale}")
+            self._log(f"水印: {'启用' if watermark else '禁用'}")
+            self._log(f"超时设置: {timeout}秒")
             
             # 设置请求头
             headers = {
                 "x-api-key": api_key.strip(),
                 "Content-Type": "application/json",
-                "User-Agent": "ComfyUI-JiMeng-4.0-I2I/1.0"
+                "User-Agent": "ComfyUI-JiMeng-I2I-V2/1.0"
             }
-            
-            # 记录请求信息
-            self._log(f"发送请求到: {url}")
-            self._log(f"提示词: {prompt.strip()[:100]}{'...' if len(prompt.strip()) > 100 else ''}")
-            self._log(f"输入图像: {'Tensor格式' if image is not None else 'URL格式'}")
-            self._log(f"尺寸: {size}, 生成数量: {n}")
-            
-            if seed != -1:
-                self._log(f"随机种子: {seed}")
-            if negative_prompt and negative_prompt.strip():
-                self._log(f"负面提示词: {negative_prompt.strip()[:50]}{'...' if len(negative_prompt.strip()) > 50 else ''}")
-            if quality != "hd":
-                self._log(f"图像质量: {quality}")
-            if style != "vivid":
-                self._log(f"图像风格: {style}")
-            if guidance_scale != 7.5:
-                self._log(f"引导强度: {guidance_scale}")
-            if steps != 50:
-                self._log(f"推理步数: {steps}")
-            if strength != 0.8:
-                self._log(f"变化强度: {strength}")
-                
-            self._log(f"水印: {'启用' if watermark else '禁用'}, 流式响应: {'启用' if stream else '禁用'}")
-            self._log(f"超时设置: {timeout}秒")
             
             # 配置代理
             request_kwargs = {
@@ -380,15 +282,12 @@ class WanQingJiMeng40ImageToImageNodeV2:
                 response_data = response.json()
                 self._log("响应JSON解析成功")
             except json.JSONDecodeError as e:
+                response_text = response.text if response.text else "空响应"
                 self._log(f"JSON解析失败: {str(e)}", "ERROR")
-                self._log(f"响应内容: {response.text[:200]}", "ERROR")
+                self._log(f"响应内容: {response_text[:200]}", "ERROR")
                 log_output = self._print_and_format_logs()
                 blank_image = self._create_blank_image()
-                response_text = response.text if response.text else "空响应"
-                response_text = response_text[:1000] + "..." if len(response_text) > 1000 else response_text
-                error_msg = f"无效的JSON响应:\n"
-                error_msg += f"- 状态码: {response.status_code}\n"
-                error_msg += f"- 响应内容: {response_text}"
+                error_msg = f"无效的JSON响应 (状态码: {response.status_code}): {response_text}"
                 return (blank_image, False, error_msg, "", log_output)
             
             # 检查响应状态
@@ -436,12 +335,10 @@ class WanQingJiMeng40ImageToImageNodeV2:
                 if 'b64_json' in item:
                     # 处理 base64 编码的图像
                     b64_data = item['b64_json']
-                    image_size = item.get('size', '未知')
-                    
                     image_bytes = base64.b64decode(b64_data)
                     result_image = Image.open(io.BytesIO(image_bytes))
                     
-                    # 转换为RGB（如果不是的话）
+                    # 转换为RGB
                     if result_image.mode != 'RGB':
                         result_image = result_image.convert('RGB')
                     
@@ -450,47 +347,52 @@ class WanQingJiMeng40ImageToImageNodeV2:
                     image_tensor = torch.from_numpy(image_np)[None,]
                     images_tensor.append(image_tensor)
                     
-                    self._log(f"图像 {idx + 1}: {result_image.size}, 模式: {result_image.mode}, 尺寸: {image_size}")
+                    self._log(f"图像 {idx + 1}: {result_image.size}, 模式: {result_image.mode}")
                     
                 elif 'url' in item:
                     # 处理URL形式的图像
                     image_url_result = item['url']
-                    image_size = item.get('size', '未知')
-                    self._log(f"收到图像URL: {image_url_result[:80]}..., 尺寸: {image_size}")
+                    self._log(f"收到图像URL: {image_url_result[:80]}...")
                     
-                    try:
-                        # 配置图片下载代理设置
-                        download_kwargs = {"timeout": 60}
-                        if image_download_proxy:
-                            # 使用指定的代理服务器
-                            self._log(f"图片下载代理: 使用 {image_proxy_url}")
-                            download_kwargs["proxies"] = {
-                                "http": image_proxy_url,
-                                "https": image_proxy_url
-                            }
-                        else:
-                            # 禁用代理（用于内部网络或直连）
-                            self._log("图片下载代理: 禁用")
-                            download_kwargs["proxies"] = {"http": None, "https": None}
-                        
-                        img_response = requests.get(image_url_result, **download_kwargs)
-                        img_response.raise_for_status()
-                        result_image = Image.open(io.BytesIO(img_response.content))
-                        
-                        # 转换为RGB
-                        if result_image.mode != 'RGB':
-                            result_image = result_image.convert('RGB')
-                        
-                        # 转换为tensor
-                        image_np = np.array(result_image).astype(np.float32) / 255.0
-                        image_tensor = torch.from_numpy(image_np)[None,]
-                        images_tensor.append(image_tensor)
-                        
-                        self._log(f"下载图像 {idx + 1}: 实际尺寸{result_image.size}, 模式: {result_image.mode}")
-                        
-                    except Exception as e:
-                        self._log(f"下载图像 {idx + 1} 失败: {str(e)}", "ERROR")
-                        continue
+                    if response_format == "url":
+                        # 如果用户选择了URL格式，下载图像
+                        try:
+                            self._log(f"下载图像 {idx + 1}")
+                            
+                            # 配置图片下载代理设置
+                            download_kwargs = {"timeout": 30}
+                            if image_download_proxy:
+                                # 使用指定的代理服务器
+                                self._log(f"图片下载代理: 使用 {image_proxy_url}")
+                                download_kwargs["proxies"] = {
+                                    "http": image_proxy_url,
+                                    "https": image_proxy_url
+                                }
+                            else:
+                                # 禁用代理（用于内部网络或直连）
+                                self._log("图片下载代理: 禁用")
+                                download_kwargs["proxies"] = {"http": None, "https": None}
+                            
+                            img_response = requests.get(image_url_result, **download_kwargs)
+                            img_response.raise_for_status()
+                            result_image = Image.open(io.BytesIO(img_response.content))
+                            
+                            # 转换为RGB
+                            if result_image.mode != 'RGB':
+                                result_image = result_image.convert('RGB')
+                            
+                            # 转换为tensor
+                            image_np = np.array(result_image).astype(np.float32) / 255.0
+                            image_tensor = torch.from_numpy(image_np)[None,]
+                            images_tensor.append(image_tensor)
+                            
+                            self._log(f"图像 {idx + 1} 下载成功: {result_image.size}, 模式: {result_image.mode}")
+                            
+                        except Exception as e:
+                            self._log(f"下载图像 {idx + 1} 失败: {str(e)}", "ERROR")
+                            continue
+                    else:
+                        self._log("警告: 跳过URL形式的图像，当前仅支持base64格式", "WARN")
             
             if not images_tensor:
                 self._log("没有可用的图像数据", "ERROR")
@@ -505,46 +407,19 @@ class WanQingJiMeng40ImageToImageNodeV2:
             
             # 格式化使用信息
             usage = response_data.get('usage', {})
-            usage_info = f"万擎即梦4.0图生图结果:\n"
-            usage_info += f"- 模型: doubao-seedream-4-0-250828\n"
-            usage_info += f"- 请求尺寸: {size}\n"
-            
-            # 显示实际生成的图像尺寸
-            actual_sizes = []
-            for item in image_data:
-                if 'size' in item:
-                    actual_sizes.append(item['size'])
-            if actual_sizes:
-                usage_info += f"- 实际尺寸: {', '.join(actual_sizes)}\n"
-            
-            usage_info += f"- 响应格式: {response_format}\n"
-            usage_info += f"- 请求图像数量: {n}\n"
-            usage_info += f"- 生成图像数量: {len(images_tensor)}\n"
-            usage_info += f"- 输入图像: {'Tensor' if image is not None else 'URL'}\n"
-            
-            if seed != -1:
-                usage_info += f"- 随机种子: {seed}\n"
-            if negative_prompt and negative_prompt.strip():
-                usage_info += f"- 负面提示词: {negative_prompt.strip()[:50]}{'...' if len(negative_prompt.strip()) > 50 else ''}\n"
-            if quality != "hd":
-                usage_info += f"- 图像质量: {quality}\n"
-            if style != "vivid":
-                usage_info += f"- 图像风格: {style}\n"
-            if guidance_scale != 7.5:
-                usage_info += f"- 引导强度: {guidance_scale}\n"
-            if steps != 50:
-                usage_info += f"- 推理步数: {steps}\n"
-            if strength != 0.8:
-                usage_info += f"- 变化强度: {strength}\n"
-                
-            usage_info += f"- 顺序生成: {sequential_image_generation}\n"
-            usage_info += f"- 流式响应: {'是' if stream else '否'}\n"
+            usage_info = f"即梦图生图结果:\n"
+            usage_info += f"- 模型: doubao-seededit-3-0-i2i-250628\n"
+            usage_info += f"- 种子: {seed}\n"
+            usage_info += f"- 引导强度: {guidance_scale}\n"
+            usage_info += f"- 尺寸: {size}\n"
             usage_info += f"- 水印: {'是' if watermark else '否'}\n"
+            usage_info += f"- 输入图像: {'Tensor' if image is not None else 'URL'}\n"
+            usage_info += f"- 生成图像数量: {len(images_tensor)}\n"
             
             if usage:
-                usage_info += f"- 生成图像统计: {usage.get('generated_images', 0)}\n"
+                usage_info += f"- 输入Token: {usage.get('input_tokens', 0)}\n"
                 usage_info += f"- 输出Token: {usage.get('output_tokens', 0)}\n"
-                usage_info += f"- 总计Token: {usage.get('total_tokens', usage.get('output_tokens', 0))}"
+                usage_info += f"- 总计Token: {usage.get('input_tokens', 0) + usage.get('output_tokens', 0)}"
             
             # 记录API使用信息
             self._log(f"API使用信息: {usage_info.replace(chr(10), ' | ')}")
@@ -590,9 +465,10 @@ class WanQingJiMeng40ImageToImageNodeV2:
 
 # 节点映射
 NODE_CLASS_MAPPINGS = {
-    "WanQingJiMeng40ImageToImageV2": WanQingJiMeng40ImageToImageNodeV2
+    "JiMengImageToImageV2": JiMengImageToImageNodeV2
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WanQingJiMeng40ImageToImageV2": "万擎即梦4.0图生图 V2"
+    "JiMengImageToImageV2": "即梦图生图 V2"
 }
+
