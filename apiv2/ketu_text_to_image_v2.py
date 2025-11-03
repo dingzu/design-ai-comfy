@@ -56,17 +56,25 @@ class KetuTextToImageNodeV2:
                     "step": 1,
                     "tooltip": "轮询间隔（秒）"
                 }),
+                "base_url": ("STRING", {
+                    "default": "http://api-beijing.klingai.internal",
+                    "tooltip": "可图API基础地址"
+                }),
                 "use_proxy": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "是否使用代理服务器"
+                    "default": False,
+                    "tooltip": "是否使用代理服务器（API请求）"
+                }),
+                "api_proxy_url": ("STRING", {
+                    "default": "http://10.20.254.26:11080",
+                    "tooltip": "API请求代理服务器地址（任务提交和轮询使用，需use_proxy=True时生效）"
                 }),
                 "image_download_proxy": ("BOOLEAN", {
-                    "default": False,
+                    "default": True,
                     "tooltip": "图片下载是否使用代理（线上环境访问外部图片URL可能需要启用）"
                 }),
                 "image_proxy_url": ("STRING", {
                     "default": "http://10.20.254.26:11080",
-                    "tooltip": "图片下载代理服务器地址"
+                    "tooltip": "图片下载代理服务器地址（需image_download_proxy=True时生效）"
                 })
             },
             "optional": {
@@ -109,7 +117,6 @@ class KetuTextToImageNodeV2:
     CATEGORY = "✨✨✨design-ai/api-v2"
 
     def __init__(self):
-        self.api_url = "https://api-beijing.klingai.com/v1/images/generations"
         self.execution_logs = []
     
     def _log(self, message, level="INFO"):
@@ -226,8 +233,11 @@ class KetuTextToImageNodeV2:
         
         return True, ""
 
-    def submit_task(self, jwt_token, payload, use_proxy=True):
+    def submit_task(self, base_url, jwt_token, payload, use_proxy=True, api_proxy_url=""):
         """提交生成任务"""
+        # 构建完整的 API URL
+        api_url = f"{base_url.rstrip('/')}/v1/images/generations"
+        
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {jwt_token}",
@@ -240,15 +250,21 @@ class KetuTextToImageNodeV2:
             "json": payload,
             "timeout": 30
         }
-        if use_proxy:
+        
+        # use_proxy=True 且提供了 api_proxy_url 时使用代理
+        if use_proxy and api_proxy_url and api_proxy_url.strip():
+            request_kwargs["proxies"] = {
+                "http": api_proxy_url.strip(),
+                "https": api_proxy_url.strip()
+            }
+            self._log(f"API请求代理: 使用 {api_proxy_url}")
+        else:
             request_kwargs["proxies"] = {"http": None, "https": None}
             self._log("API请求代理: 禁用系统代理")
-        else:
-            self._log("API请求代理: 使用系统代理")
         
         try:
-            self._log(f"提交任务到: {self.api_url}")
-            response = requests.post(self.api_url, **request_kwargs)
+            self._log(f"提交任务到: {api_url}")
+            response = requests.post(api_url, **request_kwargs)
             
             self._log(f"收到响应, 状态码: {response.status_code}")
             
@@ -271,9 +287,11 @@ class KetuTextToImageNodeV2:
             self._log(f"网络请求失败: {str(e)}", "ERROR")
             raise ValueError(f"网络请求失败: {str(e)}")
 
-    def query_task_status(self, jwt_token, task_id, use_proxy=True):
+    def query_task_status(self, base_url, jwt_token, task_id, use_proxy=True, api_proxy_url=""):
         """查询任务状态"""
-        query_url = f"https://api-beijing.klingai.com/v1/images/generations/{task_id}"
+        # 构建完整的查询 URL
+        query_url = f"{base_url.rstrip('/')}/v1/images/generations/{task_id}"
+        
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {jwt_token}",
@@ -285,7 +303,14 @@ class KetuTextToImageNodeV2:
             "headers": headers,
             "timeout": 30
         }
-        if use_proxy:
+        
+        # use_proxy=True 且提供了 api_proxy_url 时使用代理
+        if use_proxy and api_proxy_url and api_proxy_url.strip():
+            request_kwargs["proxies"] = {
+                "http": api_proxy_url.strip(),
+                "https": api_proxy_url.strip()
+            }
+        else:
             request_kwargs["proxies"] = {"http": None, "https": None}
         
         try:
@@ -308,7 +333,7 @@ class KetuTextToImageNodeV2:
             self._log(f"查询请求失败: {str(e)}", "ERROR")
             raise ValueError(f"查询请求失败: {str(e)}")
 
-    def wait_for_completion(self, jwt_token, task_id, timeout, poll_interval, use_proxy=True):
+    def wait_for_completion(self, base_url, jwt_token, task_id, timeout, poll_interval, use_proxy=True, api_proxy_url=""):
         """等待任务完成"""
         start_time = time.time()
         self._log(f"开始轮询任务状态，最大等待时间: {timeout}秒")
@@ -318,7 +343,7 @@ class KetuTextToImageNodeV2:
             attempt += 1
             try:
                 elapsed = time.time() - start_time
-                task_data = self.query_task_status(jwt_token, task_id, use_proxy)
+                task_data = self.query_task_status(base_url, jwt_token, task_id, use_proxy, api_proxy_url)
                 task_status = task_data.get('task_status', '')
                 
                 self._log(f"轮询尝试 {attempt}, 状态: {task_status}, 耗时: {elapsed:.1f}s")
@@ -353,16 +378,17 @@ class KetuTextToImageNodeV2:
             
             # 配置图片下载代理设置
             download_kwargs = {"timeout": 60}
-            if image_download_proxy:
+            
+            # image_download_proxy=True 且提供了 image_proxy_url 时使用代理
+            if image_download_proxy and image_proxy_url and image_proxy_url.strip():
                 # 使用指定的代理服务器
                 self._log(f"图片下载代理: 使用 {image_proxy_url}")
                 download_kwargs["proxies"] = {
-                    "http": image_proxy_url,
-                    "https": image_proxy_url
+                    "http": image_proxy_url.strip(),
+                    "https": image_proxy_url.strip()
                 }
             else:
-                # 禁用代理（用于内部网络或直连）
-                self._log("图片下载代理: 禁用")
+                self._log("图片下载代理: 禁止系统代理")
                 download_kwargs["proxies"] = {"http": None, "https": None}
             
             response = requests.get(image_url, **download_kwargs)
@@ -386,7 +412,7 @@ class KetuTextToImageNodeV2:
             raise ValueError(f"图像下载失败: {str(e)}")
 
     def generate_image(self, access_key, secret_key, prompt, model_name, aspect_ratio, 
-                      wait_for_result, timeout, poll_interval, use_proxy, 
+                      wait_for_result, timeout, poll_interval, base_url, use_proxy, api_proxy_url, 
                       image_download_proxy, image_proxy_url, 
                       negative_prompt="", image=None, image_url="", image_reference="", 
                       image_fidelity=0.5, human_fidelity=0.45):
@@ -482,10 +508,11 @@ class KetuTextToImageNodeV2:
             
             self._log(f"提示词: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
             self._log(f"宽高比: {aspect_ratio}")
+            self._log(f"API基础地址: {base_url}")
             self._log(f"超时设置: {timeout}秒, 轮询间隔: {poll_interval}秒")
             
             # 提交任务
-            task_data = self.submit_task(jwt_token, payload, use_proxy)
+            task_data = self.submit_task(base_url, jwt_token, payload, use_proxy, api_proxy_url)
             task_id = task_data.get('task_id')
             
             if not task_id:
@@ -516,7 +543,7 @@ class KetuTextToImageNodeV2:
             
             # 等待任务完成
             start_time = time.time()
-            completed_data = self.wait_for_completion(jwt_token, task_id, timeout, poll_interval, use_proxy)
+            completed_data = self.wait_for_completion(base_url, jwt_token, task_id, timeout, poll_interval, use_proxy, api_proxy_url)
             total_time = time.time() - start_time
             self._log(f"总耗时: {total_time:.1f}秒")
             
