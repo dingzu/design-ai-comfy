@@ -58,7 +58,7 @@ class KetuTextToImageNodeV2:
                 }),
                 "base_url": ("STRING", {
                     "default": "http://api-beijing.klingai.internal",
-                    "tooltip": "可图API基础地址"
+                    "tooltip": "可图API基础地址!!"
                 }),
                 "use_proxy": ("BOOLEAN", {
                     "default": False,
