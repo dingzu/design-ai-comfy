@@ -85,6 +85,11 @@ from .apiv2.jimeng_multi_image_to_image_v2 import JiMengMultiImageToImageNodeV2
 from .apiv2.qwen_image_edit import QwenImageEditNode as QwenImageEditNodeV2
 from .apiv2.wanqing_jimeng_4_0_img2img_v2 import WanQingJiMeng40ImageToImageNodeV2
 from .apiv2.wanqing_jimeng_4_0_text2img_v2 import WanQingJiMeng40TextToImageNodeV2
+from .apiv2.kolors_text_to_image_v2 import KolorsTextToImageNodeV2
+from .apiv2.kolors_image_to_image_v2 import KolorsImageToImageNodeV2
+from .apiv2.kolors_expand_image_v2 import KolorsExpandImageNodeV2
+from .apiv2.qwen_image_text2img_v2 import QwenImageText2ImgNodeV2
+from .apiv2.jimeng_image_to_image_v2 import JiMengImageToImageNodeV2
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -177,7 +182,12 @@ NODE_CLASS_MAPPINGS = {
     "JiMengMultiImageToImageV2": JiMengMultiImageToImageNodeV2,
     "QwenImageEditV2": QwenImageEditNodeV2,
     "WanQingJiMeng40ImageToImageV2": WanQingJiMeng40ImageToImageNodeV2,
-    "WanQingJiMeng40TextToImageV2": WanQingJiMeng40TextToImageNodeV2
+    "WanQingJiMeng40TextToImageV2": WanQingJiMeng40TextToImageNodeV2,
+    "KolorsTextToImageV2": KolorsTextToImageNodeV2,
+    "KolorsImageToImageV2": KolorsImageToImageNodeV2,
+    "KolorsExpandImageV2": KolorsExpandImageNodeV2,
+    "QwenImageText2ImgV2": QwenImageText2ImgNodeV2,
+    "JiMengImageToImageV2": JiMengImageToImageNodeV2
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -270,7 +280,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JiMengMultiImageToImageV2": "即梦多图生图 V2",
     "QwenImageEditV2": "Qwen-Image 图像编辑 V2",
     "WanQingJiMeng40ImageToImageV2": "万擎即梦4.0图生图 V2",
-    "WanQingJiMeng40TextToImageV2": "万擎即梦4.0文生图 V2"
+    "WanQingJiMeng40TextToImageV2": "万擎即梦4.0文生图 V2",
+    "KolorsTextToImageV2": "可图文生图 V2",
+    "KolorsImageToImageV2": "可图图生图 V2",
+    "KolorsExpandImageV2": "可图扩图 V2",
+    "QwenImageText2ImgV2": "Qwen-Image 文本生成图像 V2",
+    "JiMengImageToImageV2": "即梦图生图 V2"
 }
 
 
