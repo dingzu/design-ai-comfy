@@ -1,5 +1,5 @@
 const MAX_TASKS = 500;
-const INITIAL_TASKS_URL = "https://cdnfile.corp.kuaishou.com/kc/files/a/design-ai/poify/10278f601a27463b615d0dfde.json";
+const INITIAL_TASKS_URL = "https://cdnfile.corp.kuaishou.com/kc/files/a/design-ai/poify/c890440cb229c41819804aef0.json";
 
 let isLoadingInitialTasks = false;
 let initialTasksPromise = null;
