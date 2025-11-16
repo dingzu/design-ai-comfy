@@ -775,20 +775,104 @@ export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRe
   taskHeader.appendChild(taskId);
   taskHeader.appendChild(headerRight);
 
-  // 创建新的一行用于放置加载工作流和加载结果按钮
-  const actionButtonsRow = document.createElement("div");
-  actionButtonsRow.style.cssText = `
+  // 创建"到 DesignAI 上线工作流"按钮
+  const publishToDesignAIBtn = document.createElement("button");
+  publishToDesignAIBtn.innerHTML = '<i class="mdi mdi-cloud-upload"></i><span style="margin-left: 6px;">到 DesignAI 上线工作流</span>';
+  publishToDesignAIBtn.title = "导出工作流并跳转到 DesignAI";
+  publishToDesignAIBtn.style.cssText = `
+    padding: 6px 12px;
+    background: #0369a1;
+    color: #7dd3fc;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+
+  if (task.workflowJson) {
+    publishToDesignAIBtn.addEventListener("mouseenter", () => {
+      publishToDesignAIBtn.style.background = "#0c4a6e";
+    });
+
+    publishToDesignAIBtn.addEventListener("mouseleave", () => {
+      publishToDesignAIBtn.style.background = "#0369a1";
+    });
+
+    publishToDesignAIBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      try {
+        // 获取工作流 JSON 和 API JSON
+        const workflowJson = task.workflowJson;
+        const apiJson = task.apiJson;
+
+        // 创建下载链接辅助函数
+        const downloadJson = (data, filename) => {
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+
+        // 下载工作流 JSON
+        downloadJson(workflowJson, `workflow_${task.taskId}.json`);
+
+        // 如果有 API JSON，也下载
+        if (apiJson) {
+          downloadJson(apiJson, `workflow_api_${task.taskId}.json`);
+        }
+
+        // 延迟跳转，确保下载完成
+        setTimeout(() => {
+          window.open('https://design-ai.staging.kuaishou.com/workflow/477', '_blank');
+        }, 500);
+
+        console.log("✅ 工作流导出成功，即将跳转到 DesignAI");
+      } catch (error) {
+        console.error("❌ 导出工作流失败:", error);
+        alert("导出工作流失败：" + error.message);
+      }
+    });
+  } else {
+    publishToDesignAIBtn.style.opacity = "0.3";
+    publishToDesignAIBtn.style.cursor = "not-allowed";
+    publishToDesignAIBtn.title = "无工作流数据";
+  }
+
+  // 创建第一行按钮：加载工作流和加载结果
+  const firstButtonRow = document.createElement("div");
+  firstButtonRow.style.cssText = `
     display: flex;
     gap: 8px;
     margin-top: 8px;
   `;
 
-  // 让两个按钮等分宽度
   loadWorkflowBtn.style.flex = "1";
   renderToCanvasBtn.style.flex = "1";
 
-  actionButtonsRow.appendChild(loadWorkflowBtn);
-  actionButtonsRow.appendChild(renderToCanvasBtn);
+  firstButtonRow.appendChild(loadWorkflowBtn);
+  firstButtonRow.appendChild(renderToCanvasBtn);
+
+  // 创建第二行按钮：到 DesignAI 上线工作流
+  const secondButtonRow = document.createElement("div");
+  secondButtonRow.style.cssText = `
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  `;
+
+  publishToDesignAIBtn.style.width = "100%";
+
+  secondButtonRow.appendChild(publishToDesignAIBtn);
 
   const taskTime = document.createElement("div");
   taskTime.textContent = `创建时间: ${new Date(task.createdAt).toLocaleString("zh-CN")}`;
@@ -799,7 +883,8 @@ export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRe
   `;
 
   card.appendChild(taskHeader);
-  card.appendChild(actionButtonsRow);
+  card.appendChild(firstButtonRow);
+  card.appendChild(secondButtonRow);
   card.appendChild(taskTime);
 
   if ((task.status === 0 || task.status === -1) && task.errorReason) {

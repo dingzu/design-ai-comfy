@@ -62,16 +62,16 @@ app.registerExtension({
       console.error("Failed to load icon library:", error);
     }
 
-    console.log("💡 Instructions:");
-    console.log("   - Check the sidebar on the right for DesignAI tab");
-    console.log("   - Click the DesignAI tab to access workflow management");
-
-    // 立即加载初始任务（如果需要）
+    // 加载初始任务
     loadTasksAsync().then(() => {
       console.log("✅ 初始任务加载完成");
     }).catch(err => {
       console.error("❌ 初始任务加载失败:", err);
     });
+
+    console.log("💡 Instructions:");
+    console.log("   - Check the sidebar on the right for DesignAI tab");
+    console.log("   - Click the DesignAI tab to access workflow management");
 
     // 注册 DesignAI 侧边栏标签页
     app.extensionManager.registerSidebarTab({

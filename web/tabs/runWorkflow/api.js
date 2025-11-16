@@ -99,7 +99,8 @@ export async function submitWorkflow(taskType = 'wanVideo') {
     textResults: [],
     errorReason: "",
     origin: null,
-    workflowJson: prompt.workflow
+    workflowJson: prompt.workflow,
+    apiJson: processedApiJson
   };
 }
 
