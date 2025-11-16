@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DesignAI ComfyUI Extension Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        
+        .canvas-simulation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 24px;
+            font-weight: 300;
+            backdrop-filter: blur(5px);
+        }
+        
+        .console-output {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .version-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            color: #666;
+            backdrop-filter: blur(10px);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            max-width: 350px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .setting-item label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-item select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .setting-item select:hover {
+            border-color: #667eea;
+        }
+
+        .setting-item select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .setting-item .tooltip {
+            font-size: 11px;
+            color: #999;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="version-info">
+        <div><strong>Version:</strong> 1.0.0</div>
+        <div><strong>Mode:</strong> Test Environment</div>
+        <div><strong>Status:</strong> <span style="color: #28a745;">Active</span></div>
+    </div>
+
+    <div class="settings-panel" id="settings-panel">
+        <h3 style="margin: 0 0 15px 0; color: #333; font-size: 16px; border-bottom: 2px solid #667eea; padding-bottom: 8px;">
+            ⚙️ DesignAI 配置
+        </h3>
+        <div id="settings-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="color: #999; font-size: 12px;">加载中...</div>
+        </div>
+    </div>
+    
+    <div class="canvas-simulation">
+        模拟 ComfyUI 画布区域
+    </div>
+    
+    <div class="console-output" id="console-output">
+        <div style="color: #00ffff;">🎯 DesignAI Extension Test Console</div>
+        <div style="color: #ffff00;">Waiting for extension to load...</div>
+    </div>
+
+    <script type="module">
+        // 重写 console.log 以显示在页面上
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' ');
+            
+            const logElement = document.createElement('div');
+            logElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.style.marginBottom = '2px';
+            
+            // 根据消息内容设置颜色
+            if (message.includes('✅') || message.includes('success')) {
+                logElement.style.color = '#00ff00';
+            } else if (message.includes('🎯') || message.includes('clicked')) {
+                logElement.style.color = '#00ffff';
+            } else if (message.includes('🚀') || message.includes('Extension')) {
+                logElement.style.color = '#ffff00';
+            } else if (message.includes('💡') || message.includes('Instructions')) {
+                logElement.style.color = '#ff9900';
+            } else if (message.includes('❌') || message.includes('Failed')) {
+                logElement.style.color = '#ff4444';
+            } else {
+                logElement.style.color = '#cccccc';
+            }
+            
+            consoleOutput.appendChild(logElement);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            // 限制日志条数
+            if (consoleOutput.children.length > 50) {
+                consoleOutput.removeChild(consoleOutput.firstChild);
+            }
+        };
+        
+        // 添加键盘事件监听
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12') {
+                e.preventDefault();
+                const consoleDiv = document.getElementById('console-output');
+                consoleDiv.style.display = consoleDiv.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+        
+        console.log('🎯 Test page initialized');
+        console.log('💡 Press F12 to toggle console visibility');
+
+
+
+        // 渲染配置面板
+        function renderSettings() {
+            const settingsContainer = document.getElementById('settings-container');
+
+            // 等待 app 加载完成
+            const checkApp = setInterval(() => {
+                if (window.app && window.app.extensionManager) {
+                    clearInterval(checkApp);
+
+                    const settings = window.app.extensionManager.setting.getAll();
+
+                    if (settings.length === 0) {
+                        settingsContainer.innerHTML = '<div style="color: #999; font-size: 12px;">暂无配置项</div>';
+                        return;
+                    }
+
+                    settingsContainer.innerHTML = '';
+
+                    settings.forEach(setting => {
+                        const settingItem = document.createElement('div');
+                        settingItem.className = 'setting-item';
+
+                        const label = document.createElement('label');
+                        label.textContent = setting.name;
+
+                        if (setting.type === 'boolean') {
+                            const toggleWrapper = document.createElement('label');
+                            toggleWrapper.style.cssText = `
+                                position: relative;
+                                display: inline-block;
+                                width: 48px;
+                                height: 24px;
+                                cursor: pointer;
+                            `;
+
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.id = `setting-${setting.id}`;
+                            checkbox.checked = setting.value || false;
+                            checkbox.style.cssText = `
+                                opacity: 0;
+                                width: 0;
+                                height: 0;
+                            `;
+
+                            const slider = document.createElement('span');
+                            slider.style.cssText = `
+                                position: absolute;
+                                cursor: pointer;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                background-color: ${checkbox.checked ? '#667eea' : '#ccc'};
+                                transition: 0.3s;
+                                border-radius: 24px;
+                            `;
+
+                            const sliderButton = document.createElement('span');
+                            sliderButton.style.cssText = `
+                                position: absolute;
+                                content: "";
+                                height: 18px;
+                                width: 18px;
+                                left: ${checkbox.checked ? '27px' : '3px'};
+                                bottom: 3px;
+                                background-color: white;
+                                transition: 0.3s;
+                                border-radius: 50%;
+                            `;
+
+                            slider.appendChild(sliderButton);
+                            toggleWrapper.appendChild(checkbox);
+                            toggleWrapper.appendChild(slider);
+
+                            checkbox.addEventListener('change', async (e) => {
+                                const newValue = e.target.checked;
+                                slider.style.backgroundColor = newValue ? '#667eea' : '#ccc';
+                                sliderButton.style.left = newValue ? '27px' : '3px';
+                                await window.app.extensionManager.setting.set(setting.id, newValue);
+                                console.log(`✅ 配置已更新: ${setting.name} = ${newValue}`);
+                            });
+
+                            settingItem.appendChild(label);
+                            settingItem.appendChild(toggleWrapper);
+                        } else if (setting.type === 'combo') {
+                            const select = document.createElement('select');
+                            select.id = `setting-${setting.id}`;
+
+                            setting.options.forEach(option => {
+                                const optionEl = document.createElement('option');
+                                optionEl.value = option.value;
+                                optionEl.textContent = option.text;
+                                if (setting.value === option.value) {
+                                    optionEl.selected = true;
+                                }
+                                select.appendChild(optionEl);
+                            });
+
+                            select.addEventListener('change', async (e) => {
+                                const newValue = e.target.value;
+                                await window.app.extensionManager.setting.set(setting.id, newValue);
+                                console.log(`✅ 配置已更新: ${setting.name} = ${newValue}`);
+                            });
+
+                            settingItem.appendChild(label);
+                            settingItem.appendChild(select);
+                        } else {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = `setting-${setting.id}`;
+                            input.value = setting.value || '';
+                            input.style.cssText = `
+                                padding: 8px 12px;
+                                border: 1px solid #ddd;
+                                border-radius: 6px;
+                                font-size: 13px;
+                            `;
+
+                            input.addEventListener('change', async (e) => {
+                                const newValue = e.target.value;
+                                await window.app.extensionManager.setting.set(setting.id, newValue);
+                                console.log(`✅ 配置已更新: ${setting.name} = ${newValue}`);
+                            });
+
+                            settingItem.appendChild(label);
+                            settingItem.appendChild(input);
+                        }
+
+                        if (setting.tooltip) {
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip';
+                            tooltip.textContent = setting.tooltip;
+                            settingItem.appendChild(tooltip);
+                        }
+
+                        settingsContainer.appendChild(settingItem);
+                    });
+
+                    console.log(`✅ 配置面板渲染完成，共 ${settings.length} 个配置项`);
+                }
+            }, 100);
+        }
+
+        // 动态加载扩展
+        try {
+            console.log('🚀 Loading DesignAI extension...');
+            import('./main.js').then(() => {
+                console.log('✅ DesignAI extension loaded successfully!');
+                // 延迟渲染配置，确保扩展完全加载
+                setTimeout(renderSettings, 500);
+            }).catch(error => {
+                console.log('❌ Failed to load app simulation:', error);
+            });
+        } catch (error) {
+            console.log('❌ Failed to load app simulation:', error);
+        }
+    </script>
+</body>
+</html>
