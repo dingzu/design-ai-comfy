@@ -106,28 +106,72 @@ export function createOnboardingDialog(config) {
   const checkboxStates = new Array(steps.length).fill(false);
 
   steps.forEach((step, index) => {
+    const isImportantStep = step.includes('ComfyUI 无法运行绝大部分工作流');
+
     const stepContainer = document.createElement('div');
     stepContainer.style.cssText = `
       margin-bottom: ${index === steps.length - 1 ? '0' : '20px'};
       display: flex;
       align-items: flex-start;
       gap: 12px;
+      ${isImportantStep ? `
+        background: linear-gradient(135deg, #ff1744 0%, #ff5252 50%, #ff1744 100%);
+        background-size: 200% 200%;
+        padding: 20px;
+        border-radius: 12px;
+        border: 4px solid #ff0000;
+        box-shadow:
+          0 0 30px rgba(255, 23, 68, 0.8),
+          0 0 60px rgba(255, 23, 68, 0.6),
+          0 0 90px rgba(255, 23, 68, 0.4),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
+        animation:
+          pulseGlow 1.5s ease-in-out infinite,
+          backgroundMove 3s ease infinite,
+          megaShake 4s ease-in-out infinite;
+        position: relative;
+        transform-origin: center;
+      ` : ''}
     `;
+
+    if (isImportantStep) {
+      const warningOverlay = document.createElement('div');
+      warningOverlay.style.cssText = `
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ffeb3b;
+        color: #ff0000;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-weight: 900;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(255, 235, 59, 0.6);
+        animation: bounce 1s ease-in-out infinite;
+        z-index: 10;
+        letter-spacing: 2px;
+      `;
+      warningOverlay.textContent = '⚠️ 必读 ⚠️';
+      stepContainer.appendChild(warningOverlay);
+    }
 
     const checkboxWrapper = document.createElement('div');
     checkboxWrapper.style.cssText = `
       flex-shrink: 0;
       margin-top: 2px;
+      ${isImportantStep ? 'animation: spin 3s linear infinite;' : ''}
     `;
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = `onboarding-step-${index}`;
     checkbox.style.cssText = `
-      width: 20px;
-      height: 20px;
+      width: ${isImportantStep ? '28px' : '20px'};
+      height: ${isImportantStep ? '28px' : '20px'};
       cursor: pointer;
-      accent-color: #2a7ae4;
+      accent-color: ${isImportantStep ? '#ffeb3b' : '#2a7ae4'};
+      ${isImportantStep ? 'filter: drop-shadow(0 0 8px #ffeb3b);' : ''}
     `;
 
     checkbox.addEventListener('change', (e) => {
@@ -144,15 +188,69 @@ export function createOnboardingDialog(config) {
 
     const label = document.createElement('label');
     label.htmlFor = `onboarding-step-${index}`;
+
+    if (isImportantStep) {
+      label.innerHTML = `
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 12px;
+          justify-content: center;
+        ">
+          <i class="mdi mdi-alert-octagon" style="
+            font-size: 36px;
+            color: #ffeb3b;
+            animation: rotateBlink 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #ffeb3b);
+          "></i>
+          <span style="
+            font-weight: 900;
+            font-size: 22px;
+            color: #ffffff;
+            text-shadow:
+              0 0 20px rgba(255, 235, 59, 1),
+              0 0 40px rgba(255, 235, 59, 0.8),
+              2px 2px 4px rgba(0, 0, 0, 0.9);
+            letter-spacing: 2px;
+            animation: textGlow 1.5s ease-in-out infinite;
+          ">🔥 超级重要 🔥</span>
+          <i class="mdi mdi-alert-octagon" style="
+            font-size: 36px;
+            color: #ffeb3b;
+            animation: rotateBlink 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #ffeb3b);
+          "></i>
+        </div>
+        <div style="
+          color: #ffffff;
+          font-size: 19px;
+          line-height: 2;
+          font-weight: 700;
+          text-shadow:
+            2px 2px 6px rgba(0, 0, 0, 1),
+            0 0 10px rgba(255, 255, 255, 0.5);
+          text-align: center;
+          padding: 8px;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 8px;
+          border: 2px solid rgba(255, 235, 59, 0.5);
+        ">
+          ${step}
+        </div>
+      `;
+    } else {
+      label.textContent = step;
+    }
+
     label.style.cssText = `
-      color: #e0e0e0;
-      font-size: 15px;
+      color: ${isImportantStep ? '#ffffff' : '#e0e0e0'};
+      font-size: ${isImportantStep ? '19px' : '15px'};
       line-height: 1.6;
       cursor: pointer;
       display: block;
       user-select: none;
     `;
-    label.textContent = step;
 
     labelWrapper.appendChild(label);
 
@@ -244,6 +342,116 @@ export function createOnboardingDialog(config) {
       to {
         transform: translateY(0);
         opacity: 1;
+      }
+    }
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow:
+          0 0 30px rgba(255, 23, 68, 0.8),
+          0 0 60px rgba(255, 23, 68, 0.6),
+          0 0 90px rgba(255, 23, 68, 0.4),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow:
+          0 0 50px rgba(255, 23, 68, 1),
+          0 0 100px rgba(255, 23, 68, 0.8),
+          0 0 150px rgba(255, 23, 68, 0.6),
+          inset 0 0 30px rgba(255, 255, 255, 0.4);
+        transform: scale(1.03);
+      }
+    }
+    @keyframes backgroundMove {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    @keyframes megaShake {
+      0%, 100% {
+        transform: translateX(0) rotate(0deg);
+      }
+      10% {
+        transform: translateX(-3px) rotate(-1deg);
+      }
+      20% {
+        transform: translateX(3px) rotate(1deg);
+      }
+      30% {
+        transform: translateX(-3px) rotate(-1deg);
+      }
+      40% {
+        transform: translateX(3px) rotate(1deg);
+      }
+      50% {
+        transform: translateX(-2px) rotate(0deg);
+      }
+      60% {
+        transform: translateX(2px) rotate(0deg);
+      }
+      70% {
+        transform: translateX(-2px) rotate(0deg);
+      }
+      80% {
+        transform: translateX(2px) rotate(0deg);
+      }
+      90% {
+        transform: translateX(0) rotate(0deg);
+      }
+    }
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-8px);
+      }
+    }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    @keyframes rotateBlink {
+      0%, 100% {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+      25% {
+        opacity: 0.5;
+        transform: rotate(-15deg) scale(1.1);
+      }
+      50% {
+        opacity: 1;
+        transform: rotate(0deg) scale(1.2);
+      }
+      75% {
+        opacity: 0.5;
+        transform: rotate(15deg) scale(1.1);
+      }
+    }
+    @keyframes textGlow {
+      0%, 100% {
+        text-shadow:
+          0 0 20px rgba(255, 235, 59, 1),
+          0 0 40px rgba(255, 235, 59, 0.8),
+          2px 2px 4px rgba(0, 0, 0, 0.9);
+      }
+      50% {
+        text-shadow:
+          0 0 30px rgba(255, 235, 59, 1),
+          0 0 60px rgba(255, 235, 59, 1),
+          0 0 80px rgba(255, 235, 59, 0.8),
+          2px 2px 4px rgba(0, 0, 0, 0.9);
       }
     }
   `;
