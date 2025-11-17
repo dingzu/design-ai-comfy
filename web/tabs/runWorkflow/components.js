@@ -336,6 +336,173 @@ export function showTextDetailModal(text) {
   document.body.appendChild(overlay);
 }
 
+export function showPossibleFailureReasonsDialog() {
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s;
+  `;
+
+  const dialog = document.createElement("div");
+  dialog.style.cssText = `
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.2s;
+  `;
+
+  const dialogTitle = document.createElement("div");
+  dialogTitle.innerHTML = '<i class="mdi mdi-help-circle"></i> 可能的失败原因';
+  dialogTitle.style.cssText = `
+    color: #fbbf24;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  `;
+
+  const reasonsList = document.createElement("div");
+  reasonsList.style.cssText = `
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  `;
+
+  const reasons = [
+    {
+      title: "使用的模型不存在",
+      description: "换一个存在的模型。"
+    },
+    {
+      title: "使用的节点不存在",
+      description: "找一个功能一样的节点替换。"
+    },
+    {
+      title: "任务类型不匹配工作流",
+      description: "确保没有手动切换任务类型。"
+    },
+    {
+      title: "任务队列已满",
+      description: "可以稍后重试。"
+    },
+    {
+      title: "其他未知错误",
+      description: "请联系 @wangyihan"
+    }
+  ];
+
+  reasons.forEach((reason, index) => {
+    const reasonItem = document.createElement("div");
+    reasonItem.style.cssText = `
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    `;
+
+    const reasonTitle = document.createElement("div");
+    reasonTitle.textContent = `${index + 1}. ${reason.title}`;
+    reasonTitle.style.cssText = `
+      color: #fbbf24;
+      font-weight: 500;
+      margin-bottom: 6px;
+    `;
+
+    const reasonDesc = document.createElement("div");
+    reasonDesc.textContent = reason.description;
+    reasonDesc.style.cssText = `
+      color: #a0a0a0;
+      font-size: 13px;
+    `;
+
+    reasonItem.appendChild(reasonTitle);
+    reasonItem.appendChild(reasonDesc);
+    reasonsList.appendChild(reasonItem);
+  });
+
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "我知道了";
+  closeBtn.style.cssText = `
+    padding: 10px 24px;
+    background: #fbbf24;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  `;
+
+  closeBtn.addEventListener("mouseenter", () => {
+    closeBtn.style.background = "#f59e0b";
+  });
+
+  closeBtn.addEventListener("mouseleave", () => {
+    closeBtn.style.background = "#fbbf24";
+  });
+
+  const closeDialog = () => {
+    overlay.style.animation = "fadeOut 0.2s";
+    dialog.style.animation = "slideOut 0.2s";
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  closeBtn.addEventListener("click", closeDialog);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeDialog();
+  });
+
+  dialog.appendChild(dialogTitle);
+  dialog.appendChild(reasonsList);
+  dialog.appendChild(closeBtn);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+
+  if (!document.getElementById("error-dialog-animations")) {
+    const style = document.createElement("style");
+    style.id = "error-dialog-animations";
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-20px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
 export function showWarningDialog(message) {
   const overlay = document.createElement("div");
   overlay.style.cssText = `
@@ -793,7 +960,7 @@ export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRe
     justify-content: center;
   `;
 
-  if (task.workflowJson) {
+  if (task.workflowJson && task.status === 4) {
     publishToDesignAIBtn.addEventListener("mouseenter", () => {
       publishToDesignAIBtn.style.background = "#0c4a6e";
     });
@@ -845,7 +1012,7 @@ export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRe
   } else {
     publishToDesignAIBtn.style.opacity = "0.3";
     publishToDesignAIBtn.style.cursor = "not-allowed";
-    publishToDesignAIBtn.title = "无工作流数据";
+    publishToDesignAIBtn.title = task.status === 4 ? "无工作流数据" : "仅成功任务可上线";
   }
 
   // 创建第一行按钮：加载工作流和加载结果
@@ -888,6 +1055,41 @@ export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRe
   card.appendChild(taskTime);
 
   if ((task.status === 0 || task.status === -1) && task.errorReason) {
+    const possibleReasonsBtn = document.createElement("button");
+    possibleReasonsBtn.innerHTML = '<i class="mdi mdi-help-circle"></i> 可能的失败原因';
+    possibleReasonsBtn.style.cssText = `
+      width: 100%;
+      padding: 8px 12px;
+      background: #7f1d1d;
+      color: #fca5a5;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    `;
+
+    possibleReasonsBtn.addEventListener("mouseenter", () => {
+      possibleReasonsBtn.style.background = "#991b1b";
+    });
+
+    possibleReasonsBtn.addEventListener("mouseleave", () => {
+      possibleReasonsBtn.style.background = "#7f1d1d";
+    });
+
+    possibleReasonsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showPossibleFailureReasonsDialog();
+    });
+
+    card.appendChild(possibleReasonsBtn);
+
     const errorBox = document.createElement("div");
     errorBox.style.cssText = `
       background: #7f1d1d22;

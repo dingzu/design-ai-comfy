@@ -2,12 +2,13 @@
 import { app } from "../../scripts/app.js";
 import { loadMaterialDesignIcons } from "./utils/icons.js";
 import { initializeDesignAIRemoteRender } from "./utils/designAIRemoteRender.js";
-import { OnboardingManager, showFirstTimeOnboarding, showRunWorkflowButtonGuide } from "./utils/onboarding.js";
+import { OnboardingManager, showFirstTimeOnboarding, showRunWorkflowButtonGuide, showLoadWorkflowGuide } from "./utils/onboarding.js";
 import { installGraphToPromptHook } from "./utils/graphToPromptHook.js";
 
 // 将引导管理器设为全局，以便在不同模块间共享
 window.onboardingManager = null;
 window.showRunWorkflowButtonGuide = showRunWorkflowButtonGuide;
+window.showLoadWorkflowGuide = showLoadWorkflowGuide;
 import { renderRunWorkflow } from "./tabs/runWorkflow.js";
 import { renderWorkflowList } from "./tabs/workflowList.js";
 import { renderSettings } from "./tabs/settings.js";

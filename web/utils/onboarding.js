@@ -290,7 +290,7 @@ export function showRunWorkflowButtonGuide(manager, buttonElement) {
       left: ${buttonRect.left}px;
       width: ${buttonRect.width}px;
       height: ${buttonRect.height}px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+      border: 4px solid #2a7ae4;
       border-radius: 6px;
       z-index: 100000;
       pointer-events: none;
@@ -364,10 +364,10 @@ export function showRunWorkflowButtonGuide(manager, buttonElement) {
     style.textContent = `
       @keyframes pulse {
         0%, 100% {
-          box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 4px #2a7ae4;
+          border-width: 4px;
         }
         50% {
-          box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 8px #2a7ae4;
+          border-width: 6px;
         }
       }
     `;
@@ -379,9 +379,110 @@ export function showRunWorkflowButtonGuide(manager, buttonElement) {
 
     document.body.appendChild(spotlight);
     document.body.appendChild(tooltip);
+  }
+}
 
-    spotlight.addEventListener('click', () => {
-      confirmButton.click();
+export function showLoadWorkflowGuide(manager, buttonElement) {
+  const LOAD_WORKFLOW_GUIDE_ID = 'load_workflow_guide';
+
+  if (!manager.isCompleted(LOAD_WORKFLOW_GUIDE_ID)) {
+    const buttonRect = buttonElement.getBoundingClientRect();
+
+    const spotlight = document.createElement('div');
+    spotlight.style.cssText = `
+      position: fixed;
+      top: ${buttonRect.top}px;
+      left: ${buttonRect.left}px;
+      width: ${buttonRect.width}px;
+      height: ${buttonRect.height}px;
+      border: 4px solid #2a7ae4;
+      border-radius: 4px;
+      z-index: 100000;
+      pointer-events: none;
+      animation: pulse 2s ease-in-out infinite;
+    `;
+
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = `
+      position: fixed;
+      top: ${buttonRect.bottom + 20}px;
+      left: ${buttonRect.left + buttonRect.width / 2}px;
+      transform: translateX(-50%);
+      background: #2a2a2a;
+      color: #ffffff;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      z-index: 100001;
+      max-width: 350px;
+      animation: slideUp 0.3s ease-out;
+    `;
+
+    const tooltipText = document.createElement('div');
+    tooltipText.textContent = '点击加载工作流！！';
+    tooltipText.style.cssText = `
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    `;
+
+    const confirmButton = document.createElement('button');
+    confirmButton.textContent = '我知道了';
+    confirmButton.style.cssText = `
+      width: 100%;
+      padding: 8px 16px;
+      background: #2a7ae4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+
+    confirmButton.addEventListener('mouseenter', () => {
+      confirmButton.style.background = '#1e5bb8';
     });
+
+    confirmButton.addEventListener('mouseleave', () => {
+      confirmButton.style.background = '#2a7ae4';
+    });
+
+    confirmButton.addEventListener('click', () => {
+      spotlight.style.animation = 'fadeOut 0.3s ease-out';
+      tooltip.style.animation = 'fadeOut 0.3s ease-out';
+
+      setTimeout(() => {
+        if (spotlight.parentNode) document.body.removeChild(spotlight);
+        if (tooltip.parentNode) document.body.removeChild(tooltip);
+
+        manager.markCompleted(LOAD_WORKFLOW_GUIDE_ID);
+        console.log('✅ 加载工作流引导完成');
+      }, 300);
+    });
+
+    tooltip.appendChild(tooltipText);
+    tooltip.appendChild(confirmButton);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% {
+          border-width: 4px;
+        }
+        50% {
+          border-width: 6px;
+        }
+      }
+    `;
+
+    if (!document.getElementById('spotlight-animations')) {
+      style.id = 'spotlight-animations';
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(spotlight);
+    document.body.appendChild(tooltip);
   }
 }

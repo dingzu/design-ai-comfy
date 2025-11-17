@@ -37,13 +37,84 @@ export function renderRunWorkflow(el) {
     gap: 12px;
   `;
 
+  const labelWrapper = document.createElement("div");
+  labelWrapper.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  `;
+
   const selectLabel = document.createElement("label");
   selectLabel.textContent = "任务类型：";
   selectLabel.style.cssText = `
     color: #a0a0a0;
     font-size: 13px;
-    flex-shrink: 0;
   `;
+
+  const helpIcon = document.createElement("span");
+  helpIcon.textContent = "?";
+  helpIcon.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #404040;
+    color: #a0a0a0;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: help;
+    transition: all 0.2s;
+    position: relative;
+  `;
+
+  const tooltip = document.createElement("div");
+  tooltip.textContent = "智能适配，如不了解，请勿切换";
+  tooltip.style.cssText = `
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    padding: 8px 12px;
+    background: #2a2a2a;
+    color: #ffffff;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 99999;
+  `;
+
+  let hoverTimer = null;
+
+  helpIcon.addEventListener("mouseenter", () => {
+    helpIcon.style.background = "#505050";
+    helpIcon.style.color = "#ffffff";
+
+    hoverTimer = setTimeout(() => {
+      tooltip.style.opacity = "1";
+    }, 2000);
+  });
+
+  helpIcon.addEventListener("mouseleave", () => {
+    helpIcon.style.background = "#404040";
+    helpIcon.style.color = "#a0a0a0";
+
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      hoverTimer = null;
+    }
+    tooltip.style.opacity = "0";
+  });
+
+  helpIcon.appendChild(tooltip);
+  labelWrapper.appendChild(selectLabel);
+  labelWrapper.appendChild(helpIcon);
 
   const taskTypeSelect = document.createElement("select");
   taskTypeSelect.style.cssText = `
@@ -78,6 +149,9 @@ export function renderRunWorkflow(el) {
   taskTypeSelect.addEventListener("change", (e) => {
     selectedTaskType = e.target.value;
     console.log("📌 选择任务类型:", selectedTaskType);
+
+    // 显示提示消息
+    showToast("智能适配，如不了解，请勿切换");
   });
 
   taskTypeSelect.addEventListener("mouseenter", () => {
@@ -135,7 +209,7 @@ export function renderRunWorkflow(el) {
     }
   };
 
-  selectContainer.appendChild(selectLabel);
+  selectContainer.appendChild(labelWrapper);
   selectContainer.appendChild(taskTypeSelect);
 
   const runButton = document.createElement("button");
@@ -197,6 +271,9 @@ export function renderRunWorkflow(el) {
     const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
     const endIndex = startIndex + TASKS_PER_PAGE;
     const tasks = reversedTasks.slice(startIndex, endIndex);
+
+    // 检查是否需要显示引导
+    const shouldShowGuide = currentPage === 1 && tasks.length > 0;
 
     const contentWrapper = document.createElement("div");
     contentWrapper.style.cssText = `
@@ -309,6 +386,7 @@ export function renderRunWorkflow(el) {
       overflow-y: auto;
     `;
 
+    let isFirstTask = true;
     tasks.forEach((task) => {
       const handleDelete = (taskToDelete) => {
         if (confirm(`确定要删除任务 ${taskToDelete.taskId} 吗？`)) {
@@ -360,6 +438,18 @@ export function renderRunWorkflow(el) {
 
       const taskCard = createTaskCard(task, handleDelete, showErrorDialog, handleViewRawData, handleRenderToCanvas, handleLoadWorkflow);
       cardsContainer.appendChild(taskCard);
+
+      // 为第一个任务的加载工作流按钮添加引导
+      if (isFirstTask && shouldShowGuide) {
+        isFirstTask = false;
+        setTimeout(() => {
+          // 查找该卡片中的"加载工作流"按钮
+          const loadWorkflowBtn = taskCard.querySelector('button[title="恢复工作流"]');
+          if (loadWorkflowBtn && window.onboardingManager && window.showLoadWorkflowGuide) {
+            window.showLoadWorkflowGuide(window.onboardingManager, loadWorkflowBtn);
+          }
+        }, 500);
+      }
     });
 
     contentWrapper.appendChild(cardsContainer);
