@@ -3,7 +3,17 @@ export function validateWorkflow(apiJson) {
 
   console.log("🔍 开始验证工作流...");
 
-  console.log("📋 步骤 1: 检查输出节点");
+  console.log("📋 步骤 1: 检查节点数量");
+  const nodeCountCheck = checkNodeCount(apiJson);
+  if (!nodeCountCheck.isValid) {
+    errors.push({
+      type: 'INSUFFICIENT_NODES',
+      message: nodeCountCheck.message,
+      details: nodeCountCheck.details
+    });
+  }
+
+  console.log("📋 步骤 2: 检查输出节点");
   const hasOutputNode = checkOutputNodes(apiJson);
   if (!hasOutputNode.isValid) {
     errors.push({
@@ -13,7 +23,7 @@ export function validateWorkflow(apiJson) {
     });
   }
 
-  console.log("📋 步骤 2: 检查禁用节点");
+  console.log("📋 步骤 3: 检查禁用节点");
   const blockedNodes = checkBlockedNodes(apiJson);
   if (blockedNodes.length > 0) {
     errors.push({
@@ -35,6 +45,45 @@ export function validateWorkflow(apiJson) {
   return {
     isValid: errors.length === 0,
     errors
+  };
+}
+
+function checkNodeCount(apiJson) {
+  const nodeCount = Object.keys(apiJson).length;
+
+  console.log(`   当前节点数量: ${nodeCount}`);
+
+  if (nodeCount <= 1) {
+    console.log(`   ❌ 节点数量不足`);
+
+    const message = `当前工作流只有 ${nodeCount} 个节点，这不是一个有效的工作流。
+
+一个有效的工作流至少需要包含：
+  • 输入节点（如加载图片、文本输入等）
+  • 处理节点（如图片处理、模型推理等）
+  • 输出节点（如保存图片、保存文本等）
+
+请检查：
+  1. 确保工作流已正确加载
+  2. 确保工作流包含完整的节点链
+  3. 确保没有误删除重要节点
+
+请完善工作流后重新提交。`;
+
+    return {
+      isValid: false,
+      message,
+      details: {
+        nodeCount,
+        minimumRequired: 2
+      }
+    };
+  }
+
+  console.log(`   ✅ 节点数量充足`);
+  return {
+    isValid: true,
+    nodeCount
   };
 }
 
@@ -339,6 +388,33 @@ export function showValidationErrorDialog(errors) {
       errorBlock.appendChild(errorMessage);
       errorBlock.appendChild(nodeList);
       errorBlock.appendChild(warning);
+    } else if (error.type === 'INSUFFICIENT_NODES') {
+      const errorTitle = document.createElement('div');
+      errorTitle.style.cssText = `
+        color: #ff6b6b;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      `;
+      errorTitle.innerHTML = '<i class="mdi mdi-alert"></i> 节点数量不足';
+
+      const errorMessage = document.createElement('pre');
+      errorMessage.textContent = error.message;
+      errorMessage.style.cssText = `
+        color: #e0e0e0;
+        font-size: 14px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      `;
+
+      errorBlock.appendChild(errorTitle);
+      errorBlock.appendChild(errorMessage);
     }
 
     content.appendChild(errorBlock);

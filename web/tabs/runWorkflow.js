@@ -502,7 +502,15 @@ export function renderRunWorkflow(el) {
 
     } catch (error) {
       console.error("❌ 提交任务失败:", error);
-      alert("提交任务失败：" + error.message);
+
+      // 如果是工作流验证失败或媒体上传失败，不显示 alert
+      // 因为已经显示了详细的错误对话框
+      const skipAlert = error.message === "工作流验证失败" ||
+                        error.message.includes("处理媒体文件失败");
+
+      if (!skipAlert) {
+        alert("提交任务失败：" + error.message);
+      }
     } finally {
       runButton.disabled = false;
       runButton.style.opacity = "1";

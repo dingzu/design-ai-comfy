@@ -735,20 +735,25 @@ export function showErrorDialog(errorMessage) {
 export function createTaskCard(task, onDelete, onErrorClick, onViewRawData, onRenderToCanvas, onLoadWorkflow) {
   const card = document.createElement("div");
   card.style.cssText = `
-    background: #2a2a2a;
-    border: 1px solid #404040;
+    background: #3d3d3d;
+    border: 1px solid #5a5a5a;
     border-radius: 8px;
     padding: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
     transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   `;
 
   card.addEventListener("mouseenter", () => {
-    card.style.borderColor = "#606060";
+    card.style.borderColor = "#7a7a7a";
+    card.style.boxShadow = "0 6px 16px rgba(0, 0, 0, 0.5)";
+    card.style.transform = "translateY(-2px)";
   });
 
   card.addEventListener("mouseleave", () => {
-    card.style.borderColor = "#404040";
+    card.style.borderColor = "#5a5a5a";
+    card.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+    card.style.transform = "translateY(0)";
   });
 
   const taskHeader = document.createElement("div");
