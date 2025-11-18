@@ -1,5 +1,6 @@
 import { processMediaFiles } from "./mediaProcessor.js";
 import { callOriginalGraphToPrompt } from "../../utils/graphToPromptHook.js";
+import { validateWorkflow, showValidationErrorDialog } from "./validator.js";
 
 export async function submitWorkflow(taskType = 'wanVideo') {
   if (!window.app || !window.app.graphToPromptOrigin) {
@@ -9,9 +10,40 @@ export async function submitWorkflow(taskType = 'wanVideo') {
   const prompt = await callOriginalGraphToPrompt(window.app);
   console.log("✅ 获取 Prompt 数据成功:", prompt);
 
-  console.log("🔄 开始处理媒体文件...");
-  const processedApiJson = await processMediaFiles(prompt.output);
-  console.log("✅ 媒体文件处理完成");
+  console.log("🔍 步骤 1: 验证工作流配置");
+  const validation = validateWorkflow(prompt.output);
+  if (!validation.isValid) {
+    console.log("❌ 工作流验证失败，中断提交");
+    showValidationErrorDialog(validation.errors);
+    throw new Error("工作流验证失败");
+  }
+  console.log("✅ 工作流验证通过");
+
+  console.log("🔄 步骤 2: 开始处理媒体文件...");
+  let processedApiJson;
+  try {
+    processedApiJson = await processMediaFiles(prompt.output);
+    console.log("✅ 媒体文件处理完成");
+  } catch (error) {
+    console.error("❌ 媒体文件处理失败:", error);
+    const errorMessage = `媒体文件上传失败
+
+错误详情：${error.message}
+
+可能的原因：
+• 图片或视频文件损坏
+• 文件格式不支持
+• 网络连接问题
+• 文件大小超出限制
+
+请检查您的输入文件并重试。`;
+
+    showValidationErrorDialog([{
+      type: 'MEDIA_UPLOAD_ERROR',
+      message: errorMessage
+    }]);
+    throw error;
+  }
 
   const inputParams = [];
 
