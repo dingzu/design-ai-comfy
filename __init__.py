@@ -91,6 +91,7 @@ from .apiv2.kolors_expand_image_v2 import KolorsExpandImageNodeV2
 from .apiv2.qwen_image_text2img_v2 import QwenImageText2ImgNodeV2
 from .apiv2.jimeng_image_to_image_v2 import JiMengImageToImageNodeV2
 from .apiv2.ketu_text_to_image_v2 import KetuTextToImageNodeV2
+from .others.unmult_by_yangyunpeng03 import AlphaCurveAdjustNode, ImageNormalBlendNode, UnmultBlackBackground
 
 NODE_CLASS_MAPPINGS = {
     "BlackBorderDetector": BlackBorderDetector,
@@ -189,7 +190,10 @@ NODE_CLASS_MAPPINGS = {
     "KolorsExpandImageV2": KolorsExpandImageNodeV2,
     "QwenImageText2ImgV2": QwenImageText2ImgNodeV2,
     "JiMengImageToImageV2": JiMengImageToImageNodeV2,
-    "KetuTextToImageV2": KetuTextToImageNodeV2
+    "KetuTextToImageV2": KetuTextToImageNodeV2,
+    "AlphaCurveAdjust": AlphaCurveAdjustNode,
+    "ImageNormalBlendWithAlpha": ImageNormalBlendNode,
+    "UnmultBlackBackground": UnmultBlackBackground
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -288,7 +292,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "KolorsExpandImageV2": "可图扩图 V2",
     "QwenImageText2ImgV2": "Qwen-Image 文本生成图像 V2",
     "JiMengImageToImageV2": "即梦图生图 V2",
-    "KetuTextToImageV2": "可图文生图 V2 (Ketu T2I)"
+    "KetuTextToImageV2": "可图文生图 V2 (Ketu T2I)",
+    "AlphaCurveAdjust": "透明通道曲线调整",
+    "ImageNormalBlendWithAlpha": "图像正常混合（保留透明）",
+    "UnmultBlackBackground": "扣黑"
 }
 
 # 添加前端扩展目录
