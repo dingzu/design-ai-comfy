@@ -1,4 +1,4 @@
-const MAX_TASKS = 500;
+const MAX_TASKS = 100;
 const INITIAL_TASKS_URL = "https://cdnfile.corp.kuaishou.com/kc/files/a/design-ai/poify/c890440cb229c41819804aef0.json";
 
 let isLoadingInitialTasks = false;
